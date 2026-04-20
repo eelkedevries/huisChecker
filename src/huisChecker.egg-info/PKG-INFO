@@ -1,0 +1,79 @@
+Metadata-Version: 2.4
+Name: huisChecker
+Version: 0.1.0
+Requires-Python: <3.14,>=3.13
+Description-Content-Type: text/markdown
+Requires-Dist: fastapi>=0.136.0
+Requires-Dist: jinja2>=3.1.6
+Requires-Dist: python-multipart>=0.0.26
+Requires-Dist: uvicorn[standard]>=0.44.0
+
+# huisChecker
+
+Project scaffold for `huisChecker`.
+
+This is a Python project using:
+- `uv` for environment and dependency management
+- a project-local `.venv`
+- `pytest` for testing
+- `ruff` for linting and formatting
+- a `Makefile` for common commands
+
+## documentation layout
+
+- `AGENTS.md`: shared root instruction file and source of truth for repository-level agent rules
+- `CLAUDE.md`: short Claude Code wrapper that imports `AGENTS.md`
+- `docs-shared/agent-workflow.md`: shared workflow rules referenced from `AGENTS.md`
+- `docs-shared/`: project documentation that is safe to commit to GitHub
+- `docs-local/`: local-only documentation that should stay out of GitHub
+- `docs-local/prompts/`: separate numbered prompt files such as `01_setup.md` and `02_backend.md`
+
+## quick start
+
+Initial setup:
+
+```bash
+make sync
+```
+
+Run the app:
+
+```bash
+make run
+```
+
+Run tests and lint checks together:
+
+```bash
+make check
+```
+
+Run tests only:
+
+```bash
+make test
+```
+
+Lint the code:
+
+```bash
+make lint
+```
+
+Format the code:
+
+```bash
+make format
+```
+
+Activate the environment manually if you want a shell inside the project environment:
+
+```bash
+source .venv/bin/activate
+```
+
+## notes
+
+- Keep durable, shareable project information in `docs-shared/`.
+- Keep private prompt chains and working notes in `docs-local/`.
+- `docs-local/` is excluded from Git via `.gitignore`.

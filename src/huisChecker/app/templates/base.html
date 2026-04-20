@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{% block title %}huisChecker{% endblock %}</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="/static/style.css" />
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col">
+
+  <header class="bg-white border-b border-slate-200">
+    <div class="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between">
+      <a href="/" class="text-xl font-bold text-slate-900 tracking-tight">huisChecker</a>
+      <nav class="flex gap-6 text-sm text-slate-600">
+        <a href="/explore" class="hover:text-slate-900">Verken buurt</a>
+        <a href="/methodology" class="hover:text-slate-900">Methode</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="flex-1">
+    {% block content %}{% endblock %}
+  </main>
+
+  <footer class="border-t border-slate-200 mt-16">
+    <div class="max-w-4xl mx-auto px-4 py-6 text-sm text-slate-400 flex gap-6">
+      <a href="/methodology" class="hover:text-slate-600">Methode</a>
+      <span>Gegevens: CBS &middot; BAG/PDOK &middot; Leefbaarometer &middot; Politie &middot; Klimaateffectatlas</span>
+    </div>
+  </footer>
+
+</body>
+</html>

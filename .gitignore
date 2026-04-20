@@ -1,0 +1,28 @@
+# local/private project docs
+# Keep prompts and private notes out of GitHub.
+docs-local/
+
+# python virtual environment and caches
+.venv/
+__pycache__/
+*.py[cod]
+*.pyo
+
+# coverage / test cache
+.pytest_cache/
+.coverage
+htmlcov/
+
+# environment and secrets
+.env
+.env.*
+*.local
+
+# editor / OS
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# logs
+*.log

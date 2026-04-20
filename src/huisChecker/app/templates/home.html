@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% block title %}huisChecker — Woningonderzoek{% endblock %}
+
+{% block content %}
+<section class="max-w-4xl mx-auto px-4 pt-20 pb-16 text-center">
+  <h1 class="text-4xl font-bold text-slate-900 mb-4">Controleer een woning voor aankoop</h1>
+  <p class="text-lg text-slate-500 mb-10 max-w-xl mx-auto">
+    huisChecker combineert openbare databronnen tot een overzichtelijk rapport over buurt, veiligheid, leefbaarheid en klimaatrisico.
+  </p>
+
+  <form action="/address" method="get" class="flex flex-col sm:flex-row gap-3 justify-center max-w-xl mx-auto mb-6">
+    <input
+      type="text"
+      name="q"
+      placeholder="Voer een adres in, bijv. Keizersgracht 1, Amsterdam"
+      class="flex-1 border border-slate-300 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-slate-400"
+      required
+    />
+    <button
+      type="submit"
+      class="bg-slate-900 text-white rounded-lg px-6 py-3 text-sm font-medium hover:bg-slate-700 transition-colors"
+    >
+      Controleer adres
+    </button>
+  </form>
+
+  <a href="/explore" class="text-sm text-slate-500 underline underline-offset-2 hover:text-slate-800">
+    Of verken een buurt op kaart &rarr;
+  </a>
+</section>
+
+<section class="max-w-4xl mx-auto px-4 pb-16">
+  <h2 class="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-6 text-center">Databronnen</h2>
+  <div class="grid grid-cols-2 sm:grid-cols-5 gap-4 text-center text-sm text-slate-600">
+    <div class="bg-white border border-slate-200 rounded-lg p-4">CBS<br/><span class="text-xs text-slate-400">Postcode &amp; regio</span></div>
+    <div class="bg-white border border-slate-200 rounded-lg p-4">BAG / PDOK<br/><span class="text-xs text-slate-400">Adres &amp; gebouw</span></div>
+    <div class="bg-white border border-slate-200 rounded-lg p-4">Leefbaarometer<br/><span class="text-xs text-slate-400">Leefbaarheid</span></div>
+    <div class="bg-white border border-slate-200 rounded-lg p-4">Politie<br/><span class="text-xs text-slate-400">Criminaliteit</span></div>
+    <div class="bg-white border border-slate-200 rounded-lg p-4">Klimaateffectatlas<br/><span class="text-xs text-slate-400">Klimaatrisico</span></div>
+  </div>
+</section>
+{% endblock %}

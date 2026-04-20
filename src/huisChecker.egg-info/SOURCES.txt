@@ -1,0 +1,10 @@
+README.md
+pyproject.toml
+src/huisChecker/__init__.py
+src/huisChecker/__main__.py
+src/huisChecker.egg-info/PKG-INFO
+src/huisChecker.egg-info/SOURCES.txt
+src/huisChecker.egg-info/dependency_links.txt
+src/huisChecker.egg-info/requires.txt
+src/huisChecker.egg-info/top_level.txt
+tests/test_smoke.py

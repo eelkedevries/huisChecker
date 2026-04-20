@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block title %}Methode — huisChecker{% endblock %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto px-4 pt-12 pb-16">
+  <h1 class="text-2xl font-bold text-slate-900 mb-2">Methode</h1>
+  <p class="text-slate-500 mb-8">Hoe huisChecker werkt en welke databronnen worden gebruikt.</p>
+
+  <div class="prose prose-slate max-w-none space-y-6 text-sm text-slate-600">
+    <div>
+      <h2 class="font-semibold text-slate-800 text-base mb-1">Databronnen</h2>
+      <ul class="list-disc pl-5 space-y-1">
+        <li><strong>CBS</strong> — Postcode- en regionale statistieken (bevolking, inkomen, woningmarkt)</li>
+        <li><strong>BAG / PDOK</strong> — Basisregistratie Adressen en Gebouwen: adresvalidatie en gebouwkenmerken</li>
+        <li><strong>Leefbaarometer</strong> — Leefbaarheidsscore per buurt op basis van meerdere dimensies</li>
+        <li><strong>Politie open data</strong> — Criminaliteits- en overlastcijfers per wijk</li>
+        <li><strong>Klimaateffectatlas / Atlas Leefomgeving</strong> — Overstromingsrisico, hittestress, droogte en andere klimaatrisico&rsquo;s</li>
+      </ul>
+    </div>
+    <div>
+      <h2 class="font-semibold text-slate-800 text-base mb-1">Geen samengestelde score</h2>
+      <p>huisChecker presenteert per thema de beschikbare gegevens zonder deze samen te voegen tot één getal. Gebruikers beoordelen de weging zelf.</p>
+    </div>
+    <div class="bg-slate-100 rounded-lg p-4 text-slate-400">
+      Volledige methodebeschrijving volgt zodra de databronnen zijn geïntegreerd.
+    </div>
+  </div>
+</div>
+{% endblock %}
