@@ -1,0 +1,87 @@
+{
+  "reference_period": "2026-03",
+  "addresses": [
+    {
+      "postcode": "1011AB",
+      "house_number": 12,
+      "house_number_addition": null,
+      "street": "Damrak",
+      "city": "Amsterdam",
+      "nummeraanduiding_id": "0363200000123456",
+      "bag_object_id": "0363010000123456",
+      "postcode4": "1011",
+      "municipality_code": "GM0363",
+      "province_code": "PV27"
+    },
+    {
+      "postcode": "1012AB",
+      "house_number": 5,
+      "house_number_addition": "A",
+      "street": "Nieuwendijk",
+      "city": "Amsterdam",
+      "nummeraanduiding_id": "0363200000123457",
+      "bag_object_id": "0363010000123457",
+      "postcode4": "1012",
+      "municipality_code": "GM0363",
+      "province_code": "PV27"
+    },
+    {
+      "postcode": "3011AB",
+      "house_number": 42,
+      "house_number_addition": null,
+      "street": "Coolsingel",
+      "city": "Rotterdam",
+      "nummeraanduiding_id": "0599200000123458",
+      "bag_object_id": "0599010000123458",
+      "postcode4": "3011",
+      "municipality_code": "GM0599",
+      "province_code": "PV28"
+    },
+    {
+      "postcode": "3511AB",
+      "house_number": 7,
+      "house_number_addition": null,
+      "street": "Oudegracht",
+      "city": "Utrecht",
+      "nummeraanduiding_id": "0344200000123459",
+      "bag_object_id": "0344010000123459",
+      "postcode4": "3511",
+      "municipality_code": "GM0344",
+      "province_code": "PV26"
+    }
+  ],
+  "bag_objects": [
+    {
+      "id": "0363010000123456",
+      "construction_year": 1925,
+      "use_purpose": ["woonfunctie"],
+      "surface_area_m2": 78,
+      "latitude": 52.3746,
+      "longitude": 4.8998
+    },
+    {
+      "id": "0363010000123457",
+      "construction_year": 1890,
+      "use_purpose": ["woonfunctie", "winkelfunctie"],
+      "surface_area_m2": 64,
+      "latitude": 52.3755,
+      "longitude": 4.8935
+    },
+    {
+      "id": "0599010000123458",
+      "construction_year": 1960,
+      "use_purpose": ["woonfunctie"],
+      "surface_area_m2": 92,
+      "latitude": 51.9225,
+      "longitude": 4.4792
+    },
+    {
+      "id": "0344010000123459",
+      "construction_year": 1780,
+      "use_purpose": ["woonfunctie"],
+      "surface_area_m2": 110,
+      "latitude": 52.0907,
+      "longitude": 5.1214
+    }
+  ]
+}

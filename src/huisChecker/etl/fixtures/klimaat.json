@@ -1,0 +1,21 @@
+{
+  "reference_period": "2023",
+  "flood_probability_pc4": [
+    {"postcode4": "1011", "class": "middelgroot"},
+    {"postcode4": "1012", "class": "middelgroot"},
+    {"postcode4": "3011", "class": "groot"},
+    {"postcode4": "3511", "class": "klein"}
+  ],
+  "heat_stress_pc4": [
+    {"postcode4": "1011", "class": "groot"},
+    {"postcode4": "1012", "class": "groot"},
+    {"postcode4": "3011", "class": "middelgroot"},
+    {"postcode4": "3511", "class": "middelgroot"}
+  ],
+  "atlas_leefomgeving_noise_pc4": [
+    {"postcode4": "1011", "road_noise_class": "zeer_hoog"},
+    {"postcode4": "1012", "road_noise_class": "hoog"},
+    {"postcode4": "3011", "road_noise_class": "hoog"},
+    {"postcode4": "3511", "road_noise_class": "middelgroot"}
+  ]
+}

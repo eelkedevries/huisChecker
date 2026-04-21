@@ -1,0 +1,35 @@
+{
+  "reference_period": "2024",
+  "provinces": [
+    {"code": "PV27", "name": "Noord-Holland"},
+    {"code": "PV28", "name": "Zuid-Holland"},
+    {"code": "PV26", "name": "Utrecht"}
+  ],
+  "municipalities": [
+    {"code": "GM0363", "name": "Amsterdam", "province_code": "PV27"},
+    {"code": "GM0599", "name": "Rotterdam", "province_code": "PV28"},
+    {"code": "GM0344", "name": "Utrecht", "province_code": "PV26"}
+  ],
+  "postcode4_areas": [
+    {"code": "1011", "municipality_code": "GM0363", "province_code": "PV27"},
+    {"code": "1012", "municipality_code": "GM0363", "province_code": "PV27"},
+    {"code": "3011", "municipality_code": "GM0599", "province_code": "PV28"},
+    {"code": "3511", "municipality_code": "GM0344", "province_code": "PV26"}
+  ],
+  "pc4_metrics": [
+    {"postcode4": "1011", "population": 4121, "area_km2": 0.64, "population_density": 6439.1},
+    {"postcode4": "1012", "population": 3980, "area_km2": 0.73, "population_density": 5452.1},
+    {"postcode4": "3011", "population": 3120, "area_km2": 0.58, "population_density": 5379.3},
+    {"postcode4": "3511", "population": 5890, "area_km2": 0.92, "population_density": 6402.2}
+  ],
+  "municipality_metrics": [
+    {"municipality_code": "GM0363", "population": 882000, "area_km2": 219.32},
+    {"municipality_code": "GM0599", "population": 656000, "area_km2": 325.79},
+    {"municipality_code": "GM0344", "population": 361000, "area_km2": 99.21}
+  ],
+  "province_metrics": [
+    {"province_code": "PV27", "population": 2950000},
+    {"province_code": "PV28", "population": 3800000},
+    {"province_code": "PV26", "population": 1400000}
+  ]
+}

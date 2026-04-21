@@ -26,3 +26,7 @@ Thumbs.db
 
 # logs
 *.log
+
+# ETL curated outputs and manifests (regenerated from fixtures or live sources)
+data/curated/
+data/manifests/

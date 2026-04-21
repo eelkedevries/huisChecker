@@ -1,0 +1,9 @@
+{
+  "reference_period": "2025",
+  "pc4_incidents": [
+    {"postcode4": "1011", "total_incidents": 412},
+    {"postcode4": "1012", "total_incidents": 298},
+    {"postcode4": "3011", "total_incidents": 221},
+    {"postcode4": "3511", "total_incidents": 174}
+  ]
+}
