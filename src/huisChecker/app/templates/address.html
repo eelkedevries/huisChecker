@@ -1,21 +1,60 @@
 {% extends "base.html" %}
-{% block title %}Adrescheck — huisChecker{% endblock %}
+{% block title %}Adres zoeken — huisChecker{% endblock %}
 
 {% block content %}
 <div class="max-w-4xl mx-auto px-4 pt-12 pb-16">
-  <h1 class="text-2xl font-bold text-slate-900 mb-2">Adrescheck</h1>
-  {% if query %}
-    <p class="text-slate-500 mb-8">Resultaten voor: <strong>{{ query }}</strong></p>
+  <h1 class="text-2xl font-bold text-slate-900 mb-6">Adres zoeken</h1>
+
+  <form action="/address" method="get" class="flex flex-col sm:flex-row gap-3 mb-8 max-w-xl">
+    <input
+      type="text"
+      name="q"
+      value="{{ query }}"
+      placeholder="bijv. Damrak 12 Amsterdam"
+      class="flex-1 border border-slate-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-slate-400"
+      autofocus
+    />
+    <button
+      type="submit"
+      class="bg-slate-900 text-white rounded-lg px-5 py-2.5 text-sm font-medium hover:bg-slate-700 transition-colors"
+    >
+      Zoeken
+    </button>
+  </form>
+
+  {% if no_query %}
+  <p class="text-slate-500 text-sm">Voer een adres in om te zoeken.</p>
+
+  {% elif not_found %}
+  <div class="bg-amber-50 border border-amber-200 rounded-xl p-5">
+    <p class="text-amber-800 text-sm font-medium">Adres niet gevonden</p>
+    <p class="text-amber-700 text-sm mt-1">Het opgegeven adres staat niet in de beschikbare dataset.</p>
+  </div>
+
+  {% elif candidates %}
+  <p class="text-slate-500 text-sm mb-4">{{ candidates|length }} resultaat{% if candidates|length != 1 %}en{% endif %} voor <strong>{{ query }}</strong>:</p>
+  <ul class="space-y-2">
+    {% for c in candidates %}
+    <li>
+      <a
+        href="/address/{{ c.id }}"
+        class="flex items-center justify-between bg-white border border-slate-200 rounded-xl px-5 py-4 hover:border-slate-400 hover:shadow-sm transition-all group"
+      >
+        <div>
+          <span class="font-medium text-slate-900 group-hover:text-slate-700">{{ c.display }}</span>
+          <span class="ml-3 text-xs text-slate-400">{{ c.postcode4 }}</span>
+        </div>
+        <span class="text-slate-400 text-sm group-hover:text-slate-700">&rarr;</span>
+      </a>
+    </li>
+    {% endfor %}
+  </ul>
+
   {% else %}
-    <p class="text-slate-500 mb-8">Geen adres opgegeven.</p>
+  <div class="bg-white border border-slate-200 rounded-xl p-8 text-center text-slate-400">
+    <p class="font-medium text-slate-600 mb-1">Geen resultaten gevonden</p>
+    <p class="text-sm">Probeer een andere spelling of voer postcode en huisnummer in.</p>
+  </div>
   {% endif %}
-  <div class="bg-white border border-slate-200 rounded-xl p-10 text-center text-slate-400">
-    Adresvalidatie en rapportgeneratie volgen in een volgende stap.
-  </div>
-  <div class="mt-6">
-    <a href="/report{% if query %}?id={{ query }}{% endif %}" class="inline-block bg-slate-900 text-white rounded-lg px-5 py-2.5 text-sm font-medium hover:bg-slate-700 transition-colors">
-      Genereer rapport &rarr;
-    </a>
-  </div>
 </div>
 {% endblock %}
