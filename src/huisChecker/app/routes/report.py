@@ -14,4 +14,4 @@ router = APIRouter()
 @router.get("/report", response_class=HTMLResponse)
 async def report(request: Request) -> HTMLResponse:
     address_id = request.query_params.get("id", "")
-    return templates.TemplateResponse("report.html", {"request": request, "address_id": address_id})
+    return templates.TemplateResponse(request, "report.html", context={"address_id": address_id})

@@ -13,4 +13,4 @@ router = APIRouter()
 
 @router.get("/", response_class=HTMLResponse)
 async def homepage(request: Request) -> HTMLResponse:
-    return templates.TemplateResponse("home.html", {"request": request})
+    return templates.TemplateResponse(request, "home.html")

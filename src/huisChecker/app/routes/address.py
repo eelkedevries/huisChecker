@@ -14,4 +14,4 @@ router = APIRouter()
 @router.get("/address", response_class=HTMLResponse)
 async def address_preview(request: Request) -> HTMLResponse:
     query = request.query_params.get("q", "")
-    return templates.TemplateResponse("address.html", {"request": request, "query": query})
+    return templates.TemplateResponse(request, "address.html", context={"query": query})

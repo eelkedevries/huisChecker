@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+{% block title %}{{ province_name }} — Verken buurt — huisChecker{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto px-4 pt-10 pb-16">
+
+  <nav class="text-sm text-slate-500 mb-6">
+    <a href="/explore" class="hover:text-slate-800">Verken buurt</a>
+    <span class="mx-2">›</span>
+    <span class="text-slate-800">{{ province_name }}</span>
+  </nav>
+
+  <h1 class="text-2xl font-bold text-slate-900 mb-1">{{ province_name }}</h1>
+  <p class="text-slate-500 mb-8">Gemeenten in de dataset — klik om postcodegebieden te vergelijken.</p>
+
+  <div class="divide-y divide-slate-100 border border-slate-200 rounded-xl overflow-hidden">
+    {% for muni in municipalities %}
+    <a href="/explore/gemeente/{{ muni.code }}"
+       class="flex items-center justify-between bg-white px-5 py-4 hover:bg-slate-50 transition group">
+      <div>
+        <div class="font-medium text-slate-900 group-hover:text-blue-700">{{ muni.name }}</div>
+        <div class="text-sm text-slate-500 mt-0.5">
+          {% if muni.population %}{{ "{:,.0f}".format(muni.population).replace(",", ".") }} inwoners &middot; {% endif %}
+          {{ muni.pc4_count }} pc4-gebied{% if muni.pc4_count != 1 %}en{% endif %} in dataset
+        </div>
+      </div>
+      <div class="flex items-center gap-3 text-sm shrink-0 ml-4">
+        {% if muni.avg_lb_score is not none %}
+        <div class="text-right">
+          <div class="text-xs text-slate-400 mb-0.5">Leefbaarometer</div>
+          <div class="font-medium text-slate-700">{{ muni.avg_lb_score }}
+            {% if muni.avg_lb_band %}
+            <span class="text-slate-400 font-normal">({{ muni.avg_lb_band }})</span>
+            {% endif %}
+          </div>
+        </div>
+        {% endif %}
+        {% if muni.avg_inc_per_1000 is not none %}
+        <div class="text-right">
+          <div class="text-xs text-slate-400 mb-0.5">Inc./1.000</div>
+          <div class="font-medium text-slate-700">{{ muni.avg_inc_per_1000 }}</div>
+        </div>
+        {% if muni.inc_benchmark %}
+        <span class="text-xs px-2 py-0.5 rounded-full {{ muni.inc_benchmark_css }}">{{ muni.inc_benchmark }}</span>
+        {% endif %}
+        {% endif %}
+        <span class="text-slate-400 group-hover:text-blue-600">→</span>
+      </div>
+    </a>
+    {% endfor %}
+  </div>
+
+  <div class="mt-8 text-sm text-slate-400">
+    Gemiddelde Leefbaarometer-score en incidenten per 1.000 inwoners over alle pc4-gebieden in de dataset.
+    Bron: Leefbaarometer {{ municipalities[0].avg_lb_score is not none and '' or '' }}, Politie.
+  </div>
+
+  <div class="mt-10 border-t border-slate-200 pt-6">
+    <a href="/" class="text-sm font-medium text-blue-600 hover:text-blue-800">→ Check een adres in {{ province_name }}</a>
+  </div>
+
+</div>
+{% endblock %}
