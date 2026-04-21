@@ -25,6 +25,8 @@ class AddressPreview:
     construction_year: str | None
     surface_area_m2: str | None
     use_purpose: str | None
+    latitude: float | None
+    longitude: float | None
     # Area metrics
     population_density: str | None
     leefbaarometer_score: str | None
@@ -54,6 +56,15 @@ def _index(rows: list[dict[str, str]], key: str) -> dict[str, dict[str, str]]:
 
 def _or_none(value: str | None) -> str | None:
     return value if value else None
+
+
+def _as_float(value: str | None) -> float | None:
+    if not value:
+        return None
+    try:
+        return float(value)
+    except (TypeError, ValueError):
+        return None
 
 
 def _format_use_purpose(raw: str) -> str:
@@ -155,6 +166,8 @@ def build_preview(address_id: str, data_root: Path | None = None) -> AddressPrev
     surface_area_m2 = _or_none(bag.get("surface_area_m2") if bag else None)
     use_purpose_raw = bag.get("use_purpose", "") if bag else ""
     use_purpose = _or_none(_format_use_purpose(use_purpose_raw))
+    latitude = _as_float(bag.get("latitude") if bag else None)
+    longitude = _as_float(bag.get("longitude") if bag else None)
 
     lb_score = _or_none(pc4.get("leefbaarometer_score"))
     lb_band = _or_none(pc4.get("leefbaarometer_band"))
@@ -180,6 +193,8 @@ def build_preview(address_id: str, data_root: Path | None = None) -> AddressPrev
         construction_year=construction_year,
         surface_area_m2=surface_area_m2,
         use_purpose=use_purpose,
+        latitude=latitude,
+        longitude=longitude,
         population_density=density,
         leefbaarometer_score=lb_score,
         leefbaarometer_band=lb_band,

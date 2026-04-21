@@ -67,6 +67,17 @@
     </div>
   </section>
 
+  <!-- Map -->
+  {% with
+    map_id="pc4-map",
+    map_title="Kaart",
+    layer_keys=["leefbaarometer_pc4", "cbs_population_density_pc4", "klimaateffect_flood"],
+    zoom=13,
+    map_caveat="Kaartlagen gebruiken bronklassen of gebiedsgemiddelden; niet adresspecifiek."
+  %}
+    {% include "_map.html" %}
+  {% endwith %}
+
   <!-- Veiligheid -->
   <section class="mb-8">
     <h2 class="text-sm font-semibold text-slate-500 uppercase tracking-wide mb-3">Veiligheid</h2>

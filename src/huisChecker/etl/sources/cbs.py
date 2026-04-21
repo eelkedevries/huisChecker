@@ -28,7 +28,8 @@ from huisChecker.contracts import (
     Province,
 )
 from huisChecker.etl.base import ETLJob, ETLResult, SourceMode
-from huisChecker.etl.io import read_json, write_csv
+from huisChecker.etl.geometry_stubs import pc4_polygon_feature
+from huisChecker.etl.io import read_json, write_csv, write_json
 from huisChecker.etl.manifest import SourceManifest, now_iso, write_manifest
 
 
@@ -198,6 +199,23 @@ class CbsJob(ETLJob):
                     "computed_at",
                 ),
             )
+        )
+        density_layer = {
+            "type": "FeatureCollection",
+            "features": [
+                pc4_polygon_feature(
+                    m.geography_code,
+                    {
+                        "postcode4": m.geography_code,
+                        "population_density": float(m.value) if m.value is not None else None,
+                    },
+                )
+                for m in n.pc4_metrics
+                if m.metric_key == "cbs_population_density"
+            ],
+        }
+        outputs.append(
+            write_json(curated / "layers" / "cbs_population_density_pc4.geojson", density_layer)
         )
         rows = (
             len(n.provinces)

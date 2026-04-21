@@ -10,70 +10,85 @@ Requires-Dist: uvicorn[standard]>=0.44.0
 
 # huisChecker
 
-Project scaffold for `huisChecker`.
+Dutch housing due-diligence application. Generates a structured report for a given address, drawing on publicly available data sources.
 
-This is a Python project using:
-- `uv` for environment and dependency management
-- a project-local `.venv`
-- `pytest` for testing
-- `ruff` for linting and formatting
-- a `Makefile` for common commands
+**Report-first:** huisChecker produces a per-address report, not a map or a valuation tool.
 
-## documentation layout
+## Data sources (MVP)
 
-- `AGENTS.md`: shared root instruction file and source of truth for repository-level agent rules
+| Source | What it provides |
+|---|---|
+| CBS | Postcode and regional statistics |
+| BAG / PDOK | Address validation and building attributes |
+| Leefbaarometer | Neighbourhood liveability scores |
+| Politie | Crime and nuisance data per district |
+| Klimaateffectatlas / Atlas Leefomgeving | Flood, heat, and drought risk layers |
+
+## Stack
+
+- **Backend:** FastAPI + Jinja2 templates
+- **Frontend:** HTML + Tailwind CSS (CDN)
+- **Environment:** Python 3.13, managed with `uv`
+- **Tests:** pytest
+- **Lint / format:** ruff
+
+## Documentation layout
+
+- `AGENTS.md`: shared root instruction file for coding agents
 - `CLAUDE.md`: short Claude Code wrapper that imports `AGENTS.md`
-- `docs-shared/agent-workflow.md`: shared workflow rules referenced from `AGENTS.md`
-- `docs-shared/`: project documentation that is safe to commit to GitHub
-- `docs-local/`: local-only documentation that should stay out of GitHub
-- `docs-local/prompts/`: separate numbered prompt files such as `01_setup.md` and `02_backend.md`
+- `docs-shared/`: project documentation tracked in git
+- `docs-local/`: local-only notes and prompt chains (gitignored)
 
-## quick start
-
-Initial setup:
+## Quick start
 
 ```bash
+# Create or sync the environment
 make sync
-```
 
-Run the app:
+# Run the application (with hot-reload)
+make dev
 
-```bash
+# Or run without hot-reload
 make run
 ```
 
-Run tests and lint checks together:
+Open <http://127.0.0.1:8000> in your browser.
+
+## Developer commands
+
+| Command | Description |
+|---|---|
+| `make sync` | Create / sync the uv environment |
+| `make run` | Run the app via `python -m huisChecker` |
+| `make dev` | Run with uvicorn hot-reload |
+| `make test` | Run pytest |
+| `make lint` | Run ruff linter |
+| `make format` | Run ruff formatter |
+| `make check` | Lint + test together |
+
+## Environment variables
+
+Copy `.env.example` to `.env` and fill in any required values:
 
 ```bash
-make check
+cp .env.example .env
 ```
 
-Run tests only:
+## Directory structure
 
-```bash
-make test
+```
+src/huisChecker/
+├── app/            # FastAPI application, routes, templates, static files
+├── contracts/      # Pydantic data contracts for external sources
+├── etl/            # ETL pipeline per data source
+├── layers/         # Map layer configuration and metadata
+└── report/         # Report generation logic
+tests/              # pytest test suite
+docs-shared/        # Architecture, decisions, external references
+docs-local/         # Private notes and prompt chains (gitignored)
 ```
 
-Lint the code:
+## Notes
 
-```bash
-make lint
-```
-
-Format the code:
-
-```bash
-make format
-```
-
-Activate the environment manually if you want a shell inside the project environment:
-
-```bash
-source .venv/bin/activate
-```
-
-## notes
-
-- Keep durable, shareable project information in `docs-shared/`.
-- Keep private prompt chains and working notes in `docs-local/`.
-- `docs-local/` is excluded from Git via `.gitignore`.
+- No valuation, bidding, WOZ-led workflows, energy-label integration, or AI chat features.
+- No opaque overall "huisChecker score" — each data source is presented separately.

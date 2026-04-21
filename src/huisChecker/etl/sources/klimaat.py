@@ -17,6 +17,7 @@ from dataclasses import dataclass
 from typing import Any
 
 from huisChecker.etl.base import ETLJob, ETLResult, SourceMode
+from huisChecker.etl.geometry_stubs import pc4_polygon_feature
 from huisChecker.etl.io import read_json, write_csv, write_json
 from huisChecker.etl.manifest import SourceManifest, now_iso, write_manifest
 
@@ -77,14 +78,13 @@ class KlimaatJob(ETLJob):
         flood_layer = {
             "type": "FeatureCollection",
             "features": [
-                {
-                    "type": "Feature",
-                    "properties": {
+                pc4_polygon_feature(
+                    row["postcode4"],
+                    {
                         "postcode4": row["postcode4"],
                         "class": row["flood_probability_class"],
                     },
-                    "geometry": {"type": "Point", "coordinates": [0.0, 0.0]},
-                }
+                )
                 for row in n.rows
                 if row["flood_probability_class"]
             ],

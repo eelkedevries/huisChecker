@@ -241,6 +241,10 @@ def validate_all(ctx: JobContext | None = None) -> ValidationReport:
     issues += check_geojson(
         curated / "layers" / "leefbaarometer_pc4.geojson", source_key="leefbaarometer"
     )
+    issues += check_geojson(
+        curated / "layers" / "cbs_population_density_pc4.geojson",
+        source_key="cbs_kerncijfers_pc4",
+    )
 
     return ValidationReport(issues=tuple(issues))
 

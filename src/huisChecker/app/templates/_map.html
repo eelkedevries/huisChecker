@@ -1,0 +1,68 @@
+{#
+  Reusable map partial.
+
+  Parameters (set by caller):
+    map_id          — unique DOM id, defaults to "huischecker-map"
+    map_title       — optional small heading shown above the map
+    map_caveat      — optional short text shown below the map
+    layer_keys      — tuple/list of layer-registry keys to make available
+    focus           — optional dict {lat, lon, label} for a marker + initial pan
+    zoom            — optional initial zoom (defaults in map.js)
+    height_class    — Tailwind height class (default "h-96")
+#}
+{% set map_id = map_id or "huischecker-map" %}
+{% set height_class = height_class or "h-96" %}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+      integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+      crossorigin="" />
+<link rel="stylesheet" href="/static/map.css" />
+
+<section class="hc-map-section {{ 'mb-8' if not map_bare else '' }}">
+  {% if map_title %}
+  <h2 class="text-base font-semibold text-slate-800 mb-3">{{ map_title }}</h2>
+  {% endif %}
+
+  <div class="bg-white border border-slate-200 rounded-xl overflow-hidden">
+    <div class="grid grid-cols-1 md:grid-cols-[1fr_16rem]">
+      <div
+        id="{{ map_id }}"
+        class="hc-map {{ height_class }} w-full bg-slate-100"
+        data-layer-keys="{{ layer_keys | join(',') }}"
+        {% if focus %}
+        data-focus-lat="{{ focus.lat }}"
+        data-focus-lon="{{ focus.lon }}"
+        {% if focus.label %}data-focus-label="{{ focus.label }}"{% endif %}
+        {% endif %}
+        {% if zoom %}data-zoom="{{ zoom }}"{% endif %}
+      ></div>
+
+      <aside class="hc-map-sidebar border-t md:border-t-0 md:border-l border-slate-200 p-4 text-sm">
+        <div class="font-semibold text-slate-700 mb-2">Kaartlagen</div>
+        <div id="{{ map_id }}-toggles" class="space-y-2 mb-4">
+          <div class="text-slate-400 text-xs">Bezig met laden…</div>
+        </div>
+        <div class="border-t border-slate-100 pt-3">
+          <label class="text-xs text-slate-500 font-medium" for="{{ map_id }}-opacity">
+            Transparantie actieve laag
+          </label>
+          <input
+            type="range"
+            id="{{ map_id }}-opacity"
+            min="0" max="100" value="70"
+            class="w-full mt-1 accent-slate-700"
+          />
+        </div>
+        <div id="{{ map_id }}-legend" class="border-t border-slate-100 mt-4 pt-3 space-y-3"></div>
+      </aside>
+    </div>
+
+    {% if map_caveat %}
+    <p class="text-xs text-slate-400 px-4 py-3 border-t border-slate-100">{{ map_caveat }}</p>
+    {% endif %}
+  </div>
+</section>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+        integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+        crossorigin=""></script>
+<script src="/static/map.js" defer></script>

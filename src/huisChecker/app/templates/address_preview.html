@@ -101,6 +101,20 @@
     <p class="text-xs text-slate-400 mt-3">Kengetallen zijn gemiddelden voor postcodegebied {{ preview.postcode4 }}, niet adresspecifiek.</p>
   </section>
 
+  <!-- Map -->
+  {% if preview.latitude and preview.longitude %}
+  {% with
+    map_id="preview-map",
+    map_title="Kaart en kaartlagen",
+    layer_keys=["bag_footprints", "leefbaarometer_pc4", "klimaateffect_flood"],
+    focus={"lat": preview.latitude, "lon": preview.longitude, "label": preview.display_address},
+    zoom=14,
+    map_caveat="Overlays zijn op postcodegebied-niveau; geen adresspecifieke uitspraken."
+  %}
+    {% include "_map.html" %}
+  {% endwith %}
+  {% endif %}
+
   <!-- Strengths and cautions -->
   {% if preview.strengths or preview.cautions %}
   <section class="mb-8">

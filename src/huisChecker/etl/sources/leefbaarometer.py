@@ -14,6 +14,7 @@ from typing import Any
 
 from huisChecker.contracts import AreaMetricSnapshot, GeographyLevel
 from huisChecker.etl.base import ETLJob, ETLResult, SourceMode
+from huisChecker.etl.geometry_stubs import pc4_polygon_feature
 from huisChecker.etl.io import read_json, write_csv, write_json
 from huisChecker.etl.manifest import SourceManifest, now_iso, write_manifest
 
@@ -79,17 +80,20 @@ class LeefbaarometerJob(ETLJob):
                 ),
             )
         )
+        score_by_pc4 = {m.geography_code: m.value for m in n.metrics}
         layer = {
             "type": "FeatureCollection",
             "features": [
-                {
-                    "type": "Feature",
-                    "properties": {
+                pc4_polygon_feature(
+                    pc4,
+                    {
                         "postcode4": pc4,
                         "band": band,
+                        "leefbaarometer_score": float(score_by_pc4[pc4])
+                        if pc4 in score_by_pc4
+                        else None,
                     },
-                    "geometry": {"type": "Point", "coordinates": [0.0, 0.0]},
-                }
+                )
                 for pc4, band in n.bands
             ],
         }

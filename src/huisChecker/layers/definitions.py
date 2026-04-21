@@ -29,24 +29,22 @@ class LegendType(StrEnum):
     CONTINUOUS = "continuous"
 
 
-class LegendConfig(BaseModel):
-    model_config = ConfigDict(frozen=True, extra="forbid")
-
-    type: LegendType
-    # Categorical: list of (value, label, color). Quantile/continuous: bin
-    # edges + colors; kept as a tuple of labelled stops for simplicity.
-    stops: tuple["LegendStop", ...]
-    min: float | None = None
-    max: float | None = None
-    unit: str | None = None
-
-
 class LegendStop(BaseModel):
     model_config = ConfigDict(frozen=True, extra="forbid")
 
     label: str
     color: str = Field(pattern=r"^#[0-9A-Fa-f]{6}$")
     value: float | str | None = None
+
+
+class LegendConfig(BaseModel):
+    model_config = ConfigDict(frozen=True, extra="forbid")
+
+    type: LegendType
+    stops: tuple[LegendStop, ...]
+    min: float | None = None
+    max: float | None = None
+    unit: str | None = None
 
 
 class OpacityConfig(BaseModel):
@@ -71,9 +69,21 @@ class LayerDefinition(BaseModel):
     default_visible: bool = False
     opacity: OpacityConfig = OpacityConfig(default=0.7, min=0.1, max=1.0)
     caveat: str
+    # Feature property key in the geojson used to resolve legend color for
+    # categorical layers; defaults to `value_field`. Quantile/continuous
+    # layers always read the numeric `value_field`.
+    feature_property: str | None = None
+    # Filename of curated geojson under data/curated/layers/. Defaults to
+    # f"{key}.geojson" if not set.
+    data_file: str | None = None
 
+    @property
+    def resolved_feature_property(self) -> str | None:
+        return self.feature_property or self.value_field
 
-LegendConfig.model_rebuild()
+    @property
+    def resolved_data_file(self) -> str:
+        return self.data_file or f"{self.key}.geojson"
 
 
 class LayerRegistry:
@@ -91,6 +101,9 @@ class LayerRegistry:
             return self._items[key]
         except KeyError as exc:
             raise KeyError(f"unknown layer: {key}") from exc
+
+    def has(self, key: str) -> bool:
+        return key in self._items
 
     def all(self) -> tuple[LayerDefinition, ...]:
         return tuple(self._items.values())
@@ -117,6 +130,7 @@ layer_registry.register_many(
             geometry_type=GeometryType.POLYGON,
             supported_geographies=(GeographyLevel.POSTCODE4,),
             value_field="leefbaarometer_score",
+            feature_property="band",
             legend=LegendConfig(
                 type=LegendType.CATEGORICAL,
                 stops=(
@@ -138,16 +152,19 @@ layer_registry.register_many(
             geometry_type=GeometryType.POLYGON,
             supported_geographies=(GeographyLevel.POSTCODE4,),
             value_field="cbs_population_density",
+            feature_property="population_density",
             legend=LegendConfig(
                 type=LegendType.QUANTILE,
                 stops=(
-                    LegendStop(label="Q1", color="#f7fcf5"),
-                    LegendStop(label="Q2", color="#c7e9c0"),
-                    LegendStop(label="Q3", color="#74c476"),
-                    LegendStop(label="Q4", color="#238b45"),
-                    LegendStop(label="Q5", color="#00441b"),
+                    LegendStop(label="laag", color="#f7fcf5"),
+                    LegendStop(label="onder gemiddelde", color="#c7e9c0"),
+                    LegendStop(label="gemiddeld", color="#74c476"),
+                    LegendStop(label="boven gemiddelde", color="#238b45"),
+                    LegendStop(label="hoog", color="#00441b"),
                 ),
-                unit="inhabitants/km2",
+                min=1000.0,
+                max=8000.0,
+                unit="inwoners/km²",
             ),
             caveat="CBS PC4 snapshot; values are area averages.",
         ),
@@ -155,9 +172,10 @@ layer_registry.register_many(
             key="klimaateffect_flood",
             label="Overstromingskans",
             source_dataset_key="klimaateffectatlas",
-            geometry_type=GeometryType.RASTER,
+            geometry_type=GeometryType.POLYGON,
             supported_geographies=(GeographyLevel.ADDRESS, GeographyLevel.POSTCODE4),
             value_field="klimaateffect_flood_probability",
+            feature_property="class",
             legend=LegendConfig(
                 type=LegendType.CATEGORICAL,
                 stops=(
@@ -175,7 +193,7 @@ layer_registry.register_many(
             key="bag_footprints",
             label="BAG pandcontouren",
             source_dataset_key="bag",
-            geometry_type=GeometryType.POLYGON,
+            geometry_type=GeometryType.POINT,
             supported_geographies=(GeographyLevel.ADDRESS, GeographyLevel.BAG_OBJECT),
             value_field=None,
             legend=None,
