@@ -60,6 +60,24 @@ def test_address_preview_invalid_returns_404() -> None:
     assert r.status_code == 404
 
 
+def test_address_preview_not_found_does_not_show_raw_id() -> None:
+    """Error path must not echo the internal id into the search box."""
+    r = client.get("/address/9999ZZ00000000")
+    assert r.status_code == 404
+    assert "9999ZZ00000000" not in r.text
+
+
+def test_address_search_then_preview_resolves_without_lookup() -> None:
+    """Searching warms the cache so the preview route works after clicking a result."""
+    # Trigger search to warm cache (single-result query redirects to preview)
+    r = client.get(f"/address?q=Damrak+12+Amsterdam")
+    assert r.status_code in (200, 303)
+    # Preview must resolve from cache, not need a fresh PDOK lookup
+    r2 = client.get(f"/address/{VALID_ADDRESS_ID}")
+    assert r2.status_code == 200
+    assert "Gratis voorbeeldrapport" in r2.text
+
+
 def test_report_no_id_returns_400_with_error_page() -> None:
     r = client.get("/report")
     assert r.status_code == 400

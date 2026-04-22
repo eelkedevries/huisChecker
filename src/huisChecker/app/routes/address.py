@@ -45,7 +45,7 @@ async def address_preview(request: Request, address_id: str) -> HTMLResponse:
             request,
             "address.html",
             context={
-                "query": address_id,
+                "query": "",
                 "candidates": [],
                 "no_query": False,
                 "not_found": True,

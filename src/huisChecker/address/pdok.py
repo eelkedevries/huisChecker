@@ -65,7 +65,13 @@ class HttpPdokClient:
         return [_doc_to_address(d) for d in docs]
 
     def lookup(self, address_id: str) -> PdokAddress | None:
-        params = {"id": address_id}
+        # BAG nummeraanduiding IDs are exactly 16 digits; PDOK lookup needs the
+        # Solr document URN id, not the bare numeric id.
+        if len(address_id) == 16 and address_id.isdigit():
+            pdok_id = f"adr-NL.IMBAG.Nummeraanduiding.{address_id}"
+        else:
+            pdok_id = address_id
+        params = {"id": pdok_id}
         with httpx.Client(timeout=self._timeout) as client:
             resp = client.get(f"{self._base}/lookup", params=params)
             resp.raise_for_status()

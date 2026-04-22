@@ -93,3 +93,20 @@ def test_resolve_address_unknown_returns_none() -> None:
 
 def test_resolve_address_empty_returns_none() -> None:
     assert resolve_address("") is None
+
+
+def test_search_warms_sqlite_cache() -> None:
+    """search_addresses populates SQLite so preview works without a second lookup."""
+    results = search_addresses("Damrak Amsterdam")
+    assert results
+    cached = get_resolved(results[0].id)
+    assert cached is not None
+    assert cached.city == results[0].city
+    assert cached.postcode4 == results[0].postcode4
+
+
+def test_search_warms_cache_for_all_candidates() -> None:
+    results = search_addresses("Amsterdam")
+    assert len(results) >= 2
+    for c in results:
+        assert get_resolved(c.id) is not None

@@ -100,7 +100,11 @@ def _pdok_to_resolved(addr: PdokAddress) -> ResolvedAddress:
 def search_addresses(
     query: str, *, client: PdokClient | None = None
 ) -> list[AddressCandidate]:
-    """Return up to 10 candidate addresses from PDOK Locatieserver."""
+    """Return up to 10 candidate addresses from PDOK Locatieserver.
+
+    Each hit is immediately written to the SQLite cache so that clicking a
+    result opens the preview without a second PDOK round-trip.
+    """
     if not query or not query.strip():
         return []
     pdok = client or get_client()
@@ -108,7 +112,14 @@ def search_addresses(
         hits = pdok.search(query.strip(), rows=10)
     except Exception:
         return []
-    return [_pdok_to_candidate(a) for a in hits]
+    candidates = []
+    for a in hits:
+        candidates.append(_pdok_to_candidate(a))
+        try:
+            store_resolved(_pdok_to_resolved(a))
+        except Exception:
+            pass
+    return candidates
 
 
 def resolve_address(
