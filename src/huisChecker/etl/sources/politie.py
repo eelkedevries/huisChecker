@@ -32,7 +32,7 @@ class _PolitieNormalised:
 class PolitieJob(ETLJob):
     source_key = "politie_opendata"
     label = "Politie registered incidents"
-    caveat = "Only incidents reported to the police; under-reporting varies."
+    caveat = "Alleen gemelde incidenten; onder-rapportage varieert per type incident."
 
     def extract(self) -> dict[str, Any]:
         if self.ctx.mode is SourceMode.FIXTURE:

@@ -4,26 +4,171 @@
 {% block content %}
 <div class="max-w-3xl mx-auto px-4 pt-12 pb-16">
   <h1 class="text-2xl font-bold text-slate-900 mb-2">Methode</h1>
-  <p class="text-slate-500 mb-8">Hoe huisChecker werkt en welke databronnen worden gebruikt.</p>
+  <p class="text-slate-500 mb-10">Hoe huisChecker werkt en welke databronnen worden gebruikt.</p>
 
-  <div class="prose prose-slate max-w-none space-y-6 text-sm text-slate-600">
-    <div>
-      <h2 class="font-semibold text-slate-800 text-base mb-1">Databronnen</h2>
-      <ul class="list-disc pl-5 space-y-1">
-        <li><strong>CBS</strong> — Postcode- en regionale statistieken (bevolking, inkomen, woningmarkt)</li>
-        <li><strong>BAG / PDOK</strong> — Basisregistratie Adressen en Gebouwen: adresvalidatie en gebouwkenmerken</li>
-        <li><strong>Leefbaarometer</strong> — Leefbaarheidsscore per buurt op basis van meerdere dimensies</li>
-        <li><strong>Politie open data</strong> — Criminaliteits- en overlastcijfers per wijk</li>
-        <li><strong>Klimaateffectatlas / Atlas Leefomgeving</strong> — Overstromingsrisico, hittestress, droogte en andere klimaatrisico&rsquo;s</li>
-      </ul>
-    </div>
-    <div>
-      <h2 class="font-semibold text-slate-800 text-base mb-1">Geen samengestelde score</h2>
-      <p>huisChecker presenteert per thema de beschikbare gegevens zonder deze samen te voegen tot één getal. Gebruikers beoordelen de weging zelf.</p>
-    </div>
-    <div class="bg-slate-100 rounded-lg p-4 text-slate-400">
-      Volledige methodebeschrijving volgt zodra de databronnen zijn geïntegreerd.
-    </div>
+  <div class="space-y-10 text-sm text-slate-600">
+
+    <!-- Opzet -->
+    <section>
+      <h2 class="font-semibold text-slate-800 text-base mb-3">Opzet</h2>
+      <div class="bg-white border border-slate-200 rounded-xl p-6 space-y-3">
+        <p>
+          huisChecker genereert een rapport per adres op basis van vijf groepen openbare databronnen.
+          Elke sectie in het rapport is herleidbaar tot één bron; er wordt geen samengestelde
+          "huisChecker-score" berekend.
+        </p>
+        <p>
+          De data wordt lokaal verwerkt vanuit gepubliceerde bestanden van overheden en
+          publieke instellingen. Per bron wordt het peiljaar getoond zodat u zelf kunt beoordelen
+          hoe actueel de gegevens zijn.
+        </p>
+      </div>
+    </section>
+
+    <!-- Databronnen -->
+    <section>
+      <h2 class="font-semibold text-slate-800 text-base mb-3">Databronnen</h2>
+      <div class="bg-white border border-slate-200 rounded-xl divide-y divide-slate-100">
+
+        <div class="p-5">
+          <div class="flex items-baseline justify-between gap-4 mb-1">
+            <span class="font-semibold text-slate-800">BAG / Kadaster</span>
+            <span class="text-xs text-slate-400 shrink-0">Basisregistratie Adressen en Gebouwen</span>
+          </div>
+          <p class="mb-2">Adresvalidatie, bouwjaar, gebruiksoppervlak en gebruiksfunctie per verblijfsobject.</p>
+          <p class="text-xs text-slate-400">
+            Kanttekening: BAG registreert vergunde en gereedgemelde situaties.
+            Renovaties of feitelijke aanpassingen zijn niet altijd verwerkt.
+          </p>
+        </div>
+
+        <div class="p-5">
+          <div class="flex items-baseline justify-between gap-4 mb-1">
+            <span class="font-semibold text-slate-800">CBS Kerncijfers Postcodegebieden</span>
+            <span class="text-xs text-slate-400 shrink-0">Centraal Bureau voor de Statistiek</span>
+          </div>
+          <p class="mb-2">Bevolkingsdichtheid, huishoudenssamenstelling en regionale kengetallen op PC4-niveau.</p>
+          <p class="text-xs text-slate-400">
+            Kanttekening: kerncijfers zijn gemiddelden per vierzijdig postcodegebied (PC4);
+            niet adresspecifiek. Kleine gebieden kunnen onderdrukte waarden bevatten.
+          </p>
+        </div>
+
+        <div class="p-5">
+          <div class="flex items-baseline justify-between gap-4 mb-1">
+            <span class="font-semibold text-slate-800">Leefbaarometer</span>
+            <span class="text-xs text-slate-400 shrink-0">ABF Research / BZK</span>
+          </div>
+          <p class="mb-2">
+            Leefbaarheidsscore per buurt, samengesteld uit vijf dimensies: woningvoorraad,
+            bewoners, voorzieningen, veiligheid en fysieke omgeving.
+          </p>
+          <p class="mb-2">
+            De score wordt door ABF Research gecategoriseerd in klassen:
+            <em>zeer positief, positief, voldoende, matig, negatief, zeer negatief</em>.
+            huisChecker toont de bron-eigen klasse zoals gepubliceerd.
+          </p>
+          <p class="text-xs text-slate-400">
+            Kanttekening: samengestelde score — de weging van dimensies is niet publiek.
+            Combineer niet met andere indicatoren buiten de Leefbaarometer-methode.
+          </p>
+        </div>
+
+        <div class="p-5">
+          <div class="flex items-baseline justify-between gap-4 mb-1">
+            <span class="font-semibold text-slate-800">Politie Open Data</span>
+            <span class="text-xs text-slate-400 shrink-0">Politie Nederland</span>
+          </div>
+          <p class="mb-2">
+            Geregistreerde meldingen en incidenten per wijk, genormaliseerd per 1.000 inwoners
+            op basis van CBS-bevolkingsdata.
+          </p>
+          <p class="text-xs text-slate-400">
+            Kanttekening: alleen geregistreerde meldingen. Onder-rapportage varieert sterk per type
+            incident (vermogenscriminaliteit vs. geweld vs. overlast).
+            Aangiftebereidheid verschilt per buurt.
+          </p>
+        </div>
+
+        <div class="p-5">
+          <div class="flex items-baseline justify-between gap-4 mb-1">
+            <span class="font-semibold text-slate-800">Klimaateffectatlas / Atlas Leefomgeving</span>
+            <span class="text-xs text-slate-400 shrink-0">RIVM / Deltares / PBL</span>
+          </div>
+          <p class="mb-2">
+            Klimaatrisico-indicatoren: overstromingskans, hittestress en geluidsbelasting wegverkeer.
+            Resultaten worden gepresenteerd als bron-eigen klassen (bijv. <em>laag, midden, hoog</em>).
+          </p>
+          <p class="text-xs text-slate-400">
+            Kanttekening: scenario-gebaseerde modellering op kaartcelleresniveau.
+            Klassen zijn geen precieze kansschattingen en houden geen rekening met
+            lokale waterkeringen of gebouw-specifieke maatregelen.
+          </p>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- Benchmarkmethode -->
+    <section>
+      <h2 class="font-semibold text-slate-800 text-base mb-3">Benchmarkmethode</h2>
+      <div class="bg-white border border-slate-200 rounded-xl p-6 space-y-3">
+        <p>
+          Voor numerieke indicatoren (bevolkingsdichtheid, politiemeldingen) berekent huisChecker
+          gemiddelden op gemeente-, provincie- en nationaal niveau. Het betreffende postcodegebied
+          wordt hiermee vergeleken via drie klassen:
+        </p>
+        <ul class="list-disc pl-5 space-y-1">
+          <li><strong>boven gemiddelde / beter dan gemiddeld</strong> — meer dan 10% boven referentie</li>
+          <li><strong>rond gemiddelde</strong> — binnen ±10% van de referentie</li>
+          <li><strong>onder gemiddelde / slechter dan gemiddeld</strong> — meer dan 10% onder referentie</li>
+        </ul>
+        <p>
+          De referentie is het gemiddelde over alle postcodegebieden in dezelfde gemeente, provincie
+          of het land. Gewogen gemiddelden worden niet gebruikt; elk postcodegebied telt even zwaar.
+        </p>
+        <p class="text-xs text-slate-400">
+          De 10%-drempel is een vaste keuze om stabiele klassen te produceren.
+          Bij kleine steekproeven (dunbevolkte gebieden) zijn de gemiddelden minder betrouwbaar.
+        </p>
+      </div>
+    </section>
+
+    <!-- Geen samengestelde score -->
+    <section>
+      <h2 class="font-semibold text-slate-800 text-base mb-3">Geen samengestelde score</h2>
+      <div class="bg-white border border-slate-200 rounded-xl p-6 space-y-3">
+        <p>
+          huisChecker berekent geen gecombineerde "huisChecker-score". Elke databron heeft zijn
+          eigen methodiek, peildatum en dekkingsgraad. Een samengesteld cijfer zou die verschillen
+          verhullen en een schijnzekerheid geven die de afzonderlijke bronnen niet rechtvaardigen.
+        </p>
+        <p>
+          Gebruikers bepalen zelf welke dimensies zwaarder wegen bij hun koopoverweging.
+        </p>
+      </div>
+    </section>
+
+    <!-- Limieten en aanbevelingen -->
+    <section>
+      <h2 class="font-semibold text-slate-800 text-base mb-3">Grenzen en aanbevelingen</h2>
+      <div class="bg-white border border-slate-200 rounded-xl p-6 space-y-3">
+        <p>
+          De gegevens in een huisChecker-rapport zijn publieke basisdata op postcodegebied-niveau.
+          Ze zijn geen vervanging voor:
+        </p>
+        <ul class="list-disc pl-5 space-y-1">
+          <li>Een bouwkundige keuring van de specifieke woning</li>
+          <li>Juridisch of fiscaal advies</li>
+          <li>Een actuele WOZ-beschikking of taxatierapport</li>
+          <li>Overleg met de gemeente over bestemmingsplan of bouwvergunningen</li>
+        </ul>
+        <p>
+          Gebruik dit rapport als startpunt voor verdere verdieping, niet als eindoordeel.
+        </p>
+      </div>
+    </section>
+
   </div>
 </div>
 {% endblock %}

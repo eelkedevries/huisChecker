@@ -47,7 +47,7 @@ class _CbsNormalised:
 class CbsJob(ETLJob):
     source_key = "cbs_kerncijfers_pc4"
     label = "CBS kerncijfers per postcode 4"
-    caveat = "CBS PC4 snapshot; values are area averages, not address-level."
+    caveat = "CBS-kerncijfers zijn gemiddelden per postcodegebied (PC4); niet adresspecifiek."
 
     def extract(self) -> dict[str, Any]:
         if self.ctx.mode is SourceMode.FIXTURE:

@@ -31,7 +31,7 @@ class _KlimaatNormalised:
 class KlimaatJob(ETLJob):
     source_key = "klimaateffectatlas"
     label = "Klimaateffectatlas + Atlas Leefomgeving selection"
-    caveat = "Scenario-based modelling; classes, not precise probabilities."
+    caveat = "Scenario-gebaseerde modellering; klassen, geen precieze kansschattingen."
 
     def extract(self) -> dict[str, Any]:
         if self.ctx.mode is SourceMode.FIXTURE:

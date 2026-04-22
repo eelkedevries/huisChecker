@@ -27,7 +27,7 @@ class _BagNormalised:
 class BagJob(ETLJob):
     source_key = "bag"
     label = "BAG / PDOK address and building registry"
-    caveat = "BAG data reflects registered facts; real-world state may differ."
+    caveat = "BAG-data betreft geregistreerde feiten; de werkelijke situatie kan afwijken."
 
     def extract(self) -> dict[str, Any]:
         if self.ctx.mode is SourceMode.FIXTURE:

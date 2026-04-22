@@ -14,77 +14,77 @@ CORE_SOURCES: tuple[SourceDataset, ...] = (
         label="CBS kerncijfers per postcode 4",
         provider="CBS",
         url="https://www.cbs.nl/nl-nl/maatwerk/2024/kerncijfers-per-postcode",
-        refresh_cadence="annual",
+        refresh_cadence="jaarlijks",
         coverage="NL, postcode4 + gemeente + provincie",
         licence="CBS-open-data",
         notes=(
-            "Annual snapshot. PC4 averages, not address-level. "
-            "Includes municipality and province rollups."
+            "Jaarlijkse snapshot. Gemiddelden per PC4-gebied, niet adresspecifiek. "
+            "Bevat rollups op gemeente- en provinciaal niveau."
         ),
     ),
     SourceDataset(
         key="bag",
-        label="BAG / PDOK address and building registry",
+        label="BAG / PDOK adres- en gebouwenregistratie",
         provider="Kadaster / PDOK",
         url="https://www.pdok.nl/introductie/-/article/basisregistratie-adressen-en-gebouwen-ba-1",
         refresh_cadence="ad hoc",
         coverage="NL, nummeraanduiding + verblijfsobject",
         licence="CC0 (BAG)",
         notes=(
-            "Use PDOK Locatieserver for address lookup; BAG extract for building facts. "
-            "Refresh is ad hoc: take a recent PDOK snapshot, do not chase daily deltas in MVP."
+            "Adresvalidatie via PDOK Locatieserver; gebouwkenmerken via BAG-extract. "
+            "Peildatum op basis van meest recente PDOK-snapshot."
         ),
     ),
     SourceDataset(
         key="leefbaarometer",
-        label="Leefbaarometer 3.0 scores and dimensions",
+        label="Leefbaarometer 3.0 scores en dimensies",
         provider="Ministerie van BZK",
         url="https://www.leefbaarometer.nl/",
-        refresh_cadence="biennial",
+        refresh_cadence="tweejaarlijks",
         coverage="NL, postcode4 + buurt",
         licence="Open data (CC-BY)",
         notes=(
-            "Composite score is source-native. Do not re-aggregate into a huisChecker score. "
-            "Reference period drives MVP display."
+            "Samengestelde bron-eigen score; niet hercombineren tot een huisChecker-score. "
+            "Peiljaar bepaalt welke editie wordt getoond."
         ),
     ),
     SourceDataset(
         key="politie_opendata",
-        label="Politie open data: crime and nuisance",
+        label="Politie open data: misdaad en overlast",
         provider="Nationale Politie",
         url="https://data.politie.nl/",
-        refresh_cadence="monthly",
-        coverage="NL, per municipality and per district/wijk",
+        refresh_cadence="maandelijks",
+        coverage="NL, per gemeente en wijk",
         licence="CC-BY",
         notes=(
-            "Registered incidents only; strong under-reporting for several categories. "
-            "Normalised per 1000 inhabitants using CBS population."
+            "Alleen geregistreerde meldingen. "
+            "Genormaliseerd per 1.000 inwoners op basis van CBS-bevolkingsdata."
         ),
     ),
     SourceDataset(
         key="klimaateffectatlas",
-        label="Klimaateffectatlas selected climate risk layers",
+        label="Klimaateffectatlas geselecteerde klimaatrisico-lagen",
         provider="Stichting CAS / Rijk",
         url="https://www.klimaateffectatlas.nl/",
         refresh_cadence="ad hoc",
-        coverage="NL, raster-backed layers",
+        coverage="NL, rasterlagen",
         licence="Open data",
         notes=(
-            "MVP pulls only stable, downloadable layers (flood probability class, heat). "
-            "No runtime dependency on the portal."
+            "Alleen stabiele, downloadbare lagen (overstromingskansklasse, hitte). "
+            "Geen runtime-afhankelijkheid van het portaal."
         ),
     ),
     SourceDataset(
         key="atlas_leefomgeving",
-        label="Atlas Leefomgeving selected layers",
+        label="Atlas Leefomgeving geselecteerde lagen",
         provider="RIVM / partners",
         url="https://www.atlasleefomgeving.nl/",
         refresh_cadence="ad hoc",
-        coverage="NL, varies per layer",
-        licence="Open data (layer-specific)",
+        coverage="NL, per laag verschillend",
+        licence="Open data (laag-specifiek)",
         notes=(
-            "Only layers with stable downloadable/service-backed sources are ingested. "
-            "Portal is not a runtime dependency."
+            "Alleen lagen met stabiele, downloadbare bronnen worden opgenomen. "
+            "Geen runtime-afhankelijkheid van het portaal."
         ),
     ),
 )

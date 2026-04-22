@@ -74,7 +74,10 @@ report_module_registry.register_many(
             metric_keys=("bag_construction_year",),
             layer_keys=("bag_footprints",),
             source_dataset_keys=("bag",),
-            caveat="BAG data reflects registered facts; real-world state may differ.",
+            caveat=(
+                "BAG-data betreft geregistreerde feiten; de werkelijke situatie kan afwijken. "
+                "Renovaties en latere verbouwingen zijn niet altijd zichtbaar."
+            ),
         ),
         ReportModuleContract(
             key=ReportModuleKey.AREA_PROFILE,
@@ -83,7 +86,10 @@ report_module_registry.register_many(
             metric_keys=("cbs_population_density",),
             layer_keys=("cbs_population_density_pc4",),
             source_dataset_keys=("cbs_kerncijfers_pc4",),
-            caveat="PC4 averages; not address-level.",
+            caveat=(
+                "CBS-kerncijfers zijn gemiddelden op postcodegebied-niveau (PC4); "
+                "niet adresspecifiek."
+            ),
         ),
         ReportModuleContract(
             key=ReportModuleKey.LIVEABILITY,
@@ -92,7 +98,10 @@ report_module_registry.register_many(
             metric_keys=("leefbaarometer_score",),
             layer_keys=("leefbaarometer_pc4",),
             source_dataset_keys=("leefbaarometer",),
-            caveat="Composite score published by Leefbaarometer; shown as-is.",
+            caveat=(
+                "Samengestelde score gepubliceerd door Leefbaarometer; getoond zoals gepubliceerd. "
+                "Niet hercombineren met andere indicatoren."
+            ),
         ),
         ReportModuleContract(
             key=ReportModuleKey.SAFETY_NUISANCE,
@@ -101,7 +110,10 @@ report_module_registry.register_many(
             metric_keys=("politie_registered_incidents_per_1000",),
             layer_keys=(),
             source_dataset_keys=("politie_opendata", "cbs_kerncijfers_pc4"),
-            caveat="Only reported incidents; under-reporting varies.",
+            caveat=(
+                "Alleen geregistreerde meldingen; onder-rapportage varieert per type incident. "
+                "Geen uitspraak over ongeregistreerde criminaliteit."
+            ),
         ),
         ReportModuleContract(
             key=ReportModuleKey.ENV_CLIMATE,
@@ -110,7 +122,10 @@ report_module_registry.register_many(
             metric_keys=("klimaateffect_flood_probability",),
             layer_keys=("klimaateffect_flood",),
             source_dataset_keys=("klimaateffectatlas", "atlas_leefomgeving"),
-            caveat="Scenario-based modelling; classes, not precise probabilities.",
+            caveat=(
+                "Scenario-gebaseerde modellering; klassen, geen precieze kansschattingen. "
+                "Houdt geen rekening met lokale waterkeringen of gebouw-specifieke maatregelen."
+            ),
         ),
         ReportModuleContract(
             key=ReportModuleKey.CAVEATS_SOURCES,
@@ -119,7 +134,7 @@ report_module_registry.register_many(
             metric_keys=(),
             layer_keys=(),
             source_dataset_keys=(),
-            caveat="Always shown; no single source covers everything.",
+            caveat="Altijd getoond; geen enkele bron dekt alles.",
             required=True,
         ),
     ]

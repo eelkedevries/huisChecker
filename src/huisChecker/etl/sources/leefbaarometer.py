@@ -29,7 +29,7 @@ class _LbNormalised:
 class LeefbaarometerJob(ETLJob):
     source_key = "leefbaarometer"
     label = "Leefbaarometer 3.0"
-    caveat = "Composite score published by Leefbaarometer; shown as-is."
+    caveat = "Samengestelde score gepubliceerd door Leefbaarometer; getoond zoals gepubliceerd."
 
     def extract(self) -> dict[str, Any]:
         if self.ctx.mode is SourceMode.FIXTURE:
