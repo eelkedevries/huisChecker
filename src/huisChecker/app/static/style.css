@@ -1,1 +1,24 @@
 /* huisChecker custom styles — supplemental to Tailwind */
+
+/* Print + PDF layout for the full report. Tailwind classes still apply
+   in print, but a few visual tweaks make PDF output cleaner. */
+@media print {
+  .hc-no-print { display: none !important; }
+  body { background: #ffffff !important; }
+  header, footer { display: none !important; }
+  main { padding: 0 !important; }
+  .hc-report { max-width: 100% !important; padding: 0 !important; }
+  .hc-section { page-break-inside: avoid; }
+  a { color: inherit; text-decoration: none; }
+}
+
+/* WeasyPrint-only @page setup — ignored in browser but applied during PDF render. */
+@page {
+  size: A4;
+  margin: 18mm 14mm 16mm 14mm;
+  @bottom-right {
+    content: "huisChecker — pagina " counter(page) " van " counter(pages);
+    font-size: 9pt;
+    color: #94a3b8;
+  }
+}

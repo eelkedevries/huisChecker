@@ -7,6 +7,7 @@ Requires-Dist: fastapi>=0.136.0
 Requires-Dist: jinja2>=3.1.6
 Requires-Dist: python-multipart>=0.0.26
 Requires-Dist: uvicorn[standard]>=0.44.0
+Requires-Dist: weasyprint>=64.1
 
 # huisChecker
 

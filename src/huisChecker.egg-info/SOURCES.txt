@@ -47,6 +47,7 @@ src/huisChecker/layers/definitions.py
 src/huisChecker/layers/service.py
 src/huisChecker/layers/styling.py
 src/huisChecker/report/__init__.py
+src/huisChecker/report/builder.py
 src/huisChecker/report/modules.py
 tests/test_address_preview.py
 tests/test_address_search.py
@@ -54,5 +55,6 @@ tests/test_contracts.py
 tests/test_etl.py
 tests/test_layers.py
 tests/test_map_routes.py
+tests/test_report_builder.py
 tests/test_report_modules.py
 tests/test_smoke.py
