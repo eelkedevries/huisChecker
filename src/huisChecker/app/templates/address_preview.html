@@ -24,6 +24,18 @@
     </p>
   </div>
 
+  {% if preview.is_partial %}
+  <div class="mb-8 bg-amber-50 border border-amber-200 rounded-xl p-4 text-sm text-amber-800">
+    <p class="font-medium mb-1">Gedeeltelijk voorbeeldrapport</p>
+    <p>
+      Dit adres is gevonden via BAG/PDOK, maar de lokale verrijking is beperkt.
+      De volgende gegevens ontbreken voor dit postcodegebied:
+      <strong>{{ preview.missing_layers | join(', ') }}</strong>.
+      Velden zonder bron worden leeg getoond.
+    </p>
+  </div>
+  {% endif %}
+
   <!-- Building basics (BAG) -->
   <section class="mb-8">
     <h2 class="text-base font-semibold text-slate-800 mb-3">Woning en gebouw</h2>

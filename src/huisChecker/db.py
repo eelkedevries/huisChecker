@@ -38,4 +38,22 @@ def init_db() -> None:
                 address_id TEXT,
                 created_at TEXT DEFAULT (datetime('now'))
             );
+            CREATE TABLE IF NOT EXISTS resolved_addresses (
+                address_id             TEXT PRIMARY KEY,
+                nummeraanduiding_id    TEXT,
+                bag_object_id          TEXT,
+                postcode               TEXT,
+                street                 TEXT,
+                house_number           TEXT,
+                house_number_addition  TEXT,
+                city                   TEXT,
+                postcode4              TEXT,
+                municipality_code      TEXT,
+                municipality_name      TEXT,
+                province_code          TEXT,
+                province_name          TEXT,
+                latitude               REAL,
+                longitude              REAL,
+                resolved_at            TEXT DEFAULT (datetime('now'))
+            );
         """)

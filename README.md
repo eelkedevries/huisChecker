@@ -8,11 +8,17 @@ Dutch housing due-diligence application. Generates a structured report for a giv
 
 | Source | What it provides |
 |---|---|
-| CBS | Postcode and regional statistics |
-| BAG / PDOK | Address validation and building attributes |
-| Leefbaarometer | Neighbourhood liveability scores |
-| Politie | Crime and nuisance data per district |
-| Klimaateffectatlas / Atlas Leefomgeving | Flood, heat, and drought risk layers |
+| PDOK Locatieserver | Live nationwide address search and resolution (primary lookup) |
+| BAG / Kadaster | Local building attributes (construction year, surface, use) — enrichment only |
+| CBS | Postcode and regional statistics — enrichment only |
+| Leefbaarometer | Neighbourhood liveability scores — enrichment only |
+| Politie | Crime and nuisance data per district — enrichment only |
+| Klimaateffectatlas / Atlas Leefomgeving | Flood, heat, and noise risk layers — enrichment only |
+
+Address search hits PDOK Locatieserver live, so any Dutch address resolves.
+Enrichment layers (BAG, CBS, Leefbaarometer, police, climate) come from curated
+local datasets; addresses outside the curated footprint still render as a
+partial preview with a clear notice about the missing layers.
 
 ## Stack
 

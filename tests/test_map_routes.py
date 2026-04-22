@@ -56,7 +56,7 @@ def test_explore_postcode_includes_map_partial() -> None:
 
 
 def test_address_preview_includes_focused_map() -> None:
-    r = client.get("/address/1011AB-12")
+    r = client.get("/address/0363200000123456")
     assert r.status_code == 200
     body = r.text
     assert 'id="preview-map"' in body

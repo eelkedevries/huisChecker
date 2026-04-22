@@ -7,7 +7,7 @@ from fastapi.responses import HTMLResponse, RedirectResponse, Response
 from fastapi.templating import Jinja2Templates
 
 from huisChecker.address.preview import build_preview
-from huisChecker.address.search import search_addresses
+from huisChecker.address.search import resolve_address, search_addresses
 from huisChecker.analytics.store import track
 
 templates = Jinja2Templates(directory=str(Path(__file__).parent.parent / "templates"))
@@ -35,6 +35,8 @@ async def address_search(request: Request) -> Response:
 
 @router.get("/address/{address_id}", response_class=HTMLResponse)
 async def address_preview(request: Request, address_id: str) -> HTMLResponse:
+    # Ensure the address is resolved (cache miss will call PDOK and persist).
+    resolve_address(address_id)
     preview = build_preview(address_id)
     if preview is not None:
         track("preview_viewed", address_id)

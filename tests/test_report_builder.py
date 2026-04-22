@@ -12,7 +12,7 @@ from huisChecker.report import (
     report_module_registry,
 )
 
-ADDRESS_ID = "1011AB-12"
+ADDRESS_ID = "0363200000123456"
 
 
 def test_build_full_report_returns_none_for_unknown_address() -> None:

@@ -534,12 +534,11 @@ def build_full_report(
     if preview is None:
         return None
 
-    addresses = read_csv(curated / "addresses.csv")
-    addr_row = next((r for r in addresses if r["id"] == address_id), None)
-    municipality_code = addr_row["municipality_code"] if addr_row else ""
-    province_code = addr_row["province_code"] if addr_row else ""
+    municipality_code = preview.municipality_code
+    province_code = preview.province_code
 
-    overview_rows = read_csv(curated / "postcode4_overview.csv")
+    overview_path = curated / "postcode4_overview.csv"
+    overview_rows = read_csv(overview_path) if overview_path.exists() else []
     agg = _aggregate(overview_rows)
 
     sections: list[ReportSection] = [

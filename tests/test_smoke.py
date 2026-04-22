@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-import os
-
 import pytest
 from fastapi.testclient import TestClient
 
@@ -11,7 +9,7 @@ from huisChecker.app.main import app
 
 client = TestClient(app, raise_server_exceptions=True)
 
-VALID_ADDRESS_ID = "1011AB-12"
+VALID_ADDRESS_ID = "0363200000123456"
 
 
 def test_import() -> None:
@@ -58,7 +56,7 @@ def test_address_preview_valid_returns_200() -> None:
 
 
 def test_address_preview_invalid_returns_404() -> None:
-    r = client.get("/address/ONBEKEND-00")
+    r = client.get("/address/9999ZZ00000000")
     assert r.status_code == 404
 
 

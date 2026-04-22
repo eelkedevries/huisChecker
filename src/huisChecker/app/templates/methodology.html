@@ -18,9 +18,15 @@
           "huisChecker-score" berekend.
         </p>
         <p>
-          De data wordt lokaal verwerkt vanuit gepubliceerde bestanden van overheden en
-          publieke instellingen. Per bron wordt het peiljaar getoond zodat u zelf kunt beoordelen
-          hoe actueel de gegevens zijn.
+          Adreszoekopdrachten worden live uitgevoerd op de PDOK Locatieserver, zodat elk
+          Nederlands adres kan worden opgezocht. De verrijkingsbronnen (BAG, CBS,
+          Leefbaarometer, Politie, Klimaateffectatlas) komen uit lokaal verwerkte bestanden
+          van overheden en publieke instellingen. Per bron wordt het peiljaar getoond zodat u
+          zelf kunt beoordelen hoe actueel de gegevens zijn.
+        </p>
+        <p class="text-xs text-slate-400">
+          Adressen buiten de dekking van de verrijkingsbronnen worden alsnog getoond als
+          gedeeltelijk voorbeeldrapport, met een duidelijke vermelding van de ontbrekende lagen.
         </p>
       </div>
     </section>
@@ -32,13 +38,20 @@
 
         <div class="p-5">
           <div class="flex items-baseline justify-between gap-4 mb-1">
-            <span class="font-semibold text-slate-800">BAG / Kadaster</span>
+            <span class="font-semibold text-slate-800">PDOK Locatieserver + BAG / Kadaster</span>
             <span class="text-xs text-slate-400 shrink-0">Basisregistratie Adressen en Gebouwen</span>
           </div>
-          <p class="mb-2">Adresvalidatie, bouwjaar, gebruiksoppervlak en gebruiksfunctie per verblijfsobject.</p>
+          <p class="mb-2">
+            Adreszoekopdracht en canonieke identificatie (nummeraanduiding, verblijfsobject,
+            postcode, gemeente- en provinciecode, coördinaten) worden live opgehaald via
+            de PDOK Locatieserver. Bouwjaar, gebruiksoppervlak en gebruiksfunctie per
+            verblijfsobject komen uit de lokaal verwerkte BAG-export.
+          </p>
           <p class="text-xs text-slate-400">
             Kanttekening: BAG registreert vergunde en gereedgemelde situaties.
             Renovaties of feitelijke aanpassingen zijn niet altijd verwerkt.
+            Voor adressen buiten de lokale BAG-footprint wordt alleen de PDOK-informatie
+            getoond en de sectie als gedeeltelijk gemarkeerd.
           </p>
         </div>
 

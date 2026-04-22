@@ -258,7 +258,7 @@ def test_dev_checkout_no_mollie_key(tmp_path, monkeypatch):
 
     client = TestClient(app)
     r = client.post(
-        "/checkout/1011AB-12",
+        "/checkout/0363200000123456",
         data={"email": "dev@test.com"},
         follow_redirects=False,
     )

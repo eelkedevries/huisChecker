@@ -10,7 +10,7 @@
       type="text"
       name="q"
       value="{{ query }}"
-      placeholder="bijv. Damrak 12 Amsterdam"
+      placeholder="bijv. Breestraat 1 Leiden of 2311CH 1"
       class="flex-1 border border-slate-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-slate-400"
       autofocus
     />
@@ -28,7 +28,7 @@
   {% elif not_found %}
   <div class="bg-amber-50 border border-amber-200 rounded-xl p-5">
     <p class="text-amber-800 text-sm font-medium">Adres niet gevonden</p>
-    <p class="text-amber-700 text-sm mt-1">Het opgegeven adres staat niet in de beschikbare dataset.</p>
+    <p class="text-amber-700 text-sm mt-1">Dit adres kon niet worden opgelost via PDOK/BAG. Controleer spelling of probeer postcode en huisnummer.</p>
   </div>
 
   {% elif candidates %}
