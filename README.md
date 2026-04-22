@@ -70,6 +70,24 @@ Copy `.env.example` to `.env` and fill in any required values:
 cp .env.example .env
 ```
 
+### Free-report testing mode
+
+Local development defaults to free full reports so the preview → report flow
+can be exercised without going through Mollie checkout. The flag is guarded
+by two env vars and only flips to free when **both** conditions hold:
+
+| Variable | Dev default | Behaviour |
+|---|---|---|
+| `APP_ENV` | `development` | Production never serves free reports via env flag |
+| `REPORT_FREE_ACCESS` | `1` | Set to `0` to exercise the paid checkout locally |
+
+When free mode is active:
+
+- the preview CTA links straight to `/report?id=…` (bypasses `/checkout`)
+- the preview and report pages show an amber "Ontwikkelmodus" banner
+- the existing Mollie/Tokenised flow is kept intact and re-enables as soon
+  as either env var is flipped.
+
 ## Directory structure
 
 ```

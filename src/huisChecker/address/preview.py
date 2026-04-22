@@ -60,8 +60,25 @@ def _default_data_root() -> Path:
     return Path(__file__).resolve().parents[3] / "data"
 
 
+def _normalise_postcode4(value: str | None) -> str:
+    """Return a 4-digit PC4 code, stripped of spaces and PC6 suffixes."""
+    if not value:
+        return ""
+    digits = "".join(ch for ch in value.strip() if ch.isdigit())
+    return digits[:4]
+
+
 def _index(rows: list[dict[str, str]], key: str) -> dict[str, dict[str, str]]:
-    return {row[key]: row for row in rows if row.get(key)}
+    idx: dict[str, dict[str, str]] = {}
+    for row in rows:
+        raw = (row.get(key) or "").strip()
+        if not raw:
+            continue
+        # Postcode keys get normalised so 4-digit joins are canonical.
+        canonical = _normalise_postcode4(raw) if key == "postcode4" else raw
+        if canonical:
+            idx[canonical] = row
+    return idx
 
 
 def _or_none(value: str | None) -> str | None:
@@ -148,12 +165,21 @@ def build_preview(address_id: str, data_root: Path | None = None) -> AddressPrev
     if resolved is None:
         return None
 
+    pc4_key = _normalise_postcode4(resolved.postcode4)
+
     bag_objects = _index(_load_csv(curated / "bag_objects.csv"), "id")
     bag = bag_objects.get(resolved.bag_object_id) if resolved.bag_object_id else None
 
     overview_rows = _load_csv(curated / "postcode4_overview.csv")
     overview = _index(overview_rows, "postcode4")
-    pc4 = overview.get(resolved.postcode4, {})
+    pc4 = overview.get(pc4_key, {})
+
+    # Per-module indices so missing-data messaging can be precise rather
+    # than lumping every module into one blanket "Buurtcijfers" string.
+    cbs_idx = _index(_load_csv(curated / "postcode4_metrics.csv"), "geography_code")
+    leef_idx = _index(_load_csv(curated / "leefbaarometer_pc4.csv"), "postcode4")
+    politie_idx = _index(_load_csv(curated / "politie_pc4_incidents.csv"), "postcode4")
+    klimaat_idx = _index(_load_csv(curated / "klimaat_pc4.csv"), "postcode4")
 
     municipalities = _index(_load_csv(curated / "municipalities.csv"), "code")
     mun = municipalities.get(resolved.municipality_code, {})
@@ -195,8 +221,21 @@ def build_preview(address_id: str, data_root: Path | None = None) -> AddressPrev
     missing: list[str] = []
     if bag is None:
         missing.append("BAG-gebouwgegevens")
-    if not pc4:
-        missing.append("Buurtcijfers (CBS, Leefbaarometer, politie, klimaat)")
+    # Per-module coverage: check each source CSV individually so we can tell
+    # the user exactly which module has no row for this postcode4.
+    if pc4_key not in cbs_idx and density is None:
+        missing.append("CBS kerncijfers")
+    if pc4_key not in leef_idx and lb_score is None:
+        missing.append("Leefbaarometer")
+    if pc4_key not in politie_idx and incidents is None:
+        missing.append("Politiemeldingen")
+    if (
+        pc4_key not in klimaat_idx
+        and flood_class is None
+        and heat_class is None
+        and noise_class is None
+    ):
+        missing.append("Klimaat- en milieuklassen")
     is_partial = bool(missing)
 
     return AddressPreview(
@@ -209,7 +248,7 @@ def build_preview(address_id: str, data_root: Path | None = None) -> AddressPrev
         house_number_addition=resolved.house_number_addition,
         postcode=resolved.postcode,
         city=resolved.city,
-        postcode4=resolved.postcode4,
+        postcode4=pc4_key or resolved.postcode4,
         municipality_code=resolved.municipality_code,
         municipality_name=mun.get("name", resolved.municipality_name),
         province_code=resolved.province_code,

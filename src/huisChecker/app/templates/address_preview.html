@@ -119,7 +119,7 @@
     map_id="preview-map",
     map_title="Kaart en kaartlagen",
     layer_keys=["bag_footprints", "leefbaarometer_pc4", "klimaateffect_flood"],
-    focus={"lat": preview.latitude, "lon": preview.longitude, "label": preview.display_address},
+    focus={"lat": preview.latitude, "lon": preview.longitude, "label": preview.display_address, "postcode4": preview.postcode4},
     zoom=14,
     map_caveat="Overlays zijn op postcodegebied-niveau; geen adresspecifieke uitspraken."
   %}
@@ -201,6 +201,17 @@
       Het volledige rapport bevat alle vijf databronnen, een gedetailleerde buurtanalyse,
       vergelijkingen met gemeente en provincie, en een overzicht per thema.
     </p>
+    {% if free_mode %}
+    <a
+      href="/report?id={{ preview.address_id }}{% if report_token %}&token={{ report_token }}{% endif %}"
+      class="inline-block bg-white text-slate-900 rounded-lg px-6 py-3 text-sm font-semibold hover:bg-slate-100 transition-colors"
+    >
+      Open het volledige rapport &rarr;
+    </a>
+    <p class="text-xs text-amber-300 mt-4">
+      Ontwikkelmodus: rapporten zijn tijdelijk gratis (REPORT_FREE_ACCESS=1). Betaalflow blijft beschikbaar.
+    </p>
+    {% else %}
     <a
       href="/checkout/{{ preview.address_id }}"
       class="inline-block bg-white text-slate-900 rounded-lg px-6 py-3 text-sm font-semibold hover:bg-slate-100 transition-colors"
@@ -208,6 +219,7 @@
       Ontgrendel het volledige rapport &rarr;
     </a>
     <p class="text-xs text-slate-500 mt-4">€ 9,95 &middot; Éénmalige aankoop &middot; iDEAL, creditcard, Bancontact</p>
+    {% endif %}
   </section>
 
 </div>

@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import os
 from pathlib import Path
 
 from fastapi import APIRouter, HTTPException, Request
@@ -10,6 +9,7 @@ from fastapi.responses import HTMLResponse, RedirectResponse, Response
 from fastapi.templating import Jinja2Templates
 
 from huisChecker.analytics.store import track
+from huisChecker.config import report_free_access_enabled
 from huisChecker.payment.token import validate_token
 from huisChecker.report import build_full_report
 
@@ -19,10 +19,7 @@ templates = Jinja2Templates(directory=str(TEMPLATES_DIR))
 router = APIRouter()
 
 def _has_access(address_id: str, token: str) -> bool:
-    if (
-        os.getenv("APP_ENV", "development") == "development"
-        and os.getenv("REPORT_FREE_ACCESS", "1") == "1"
-    ):
+    if report_free_access_enabled():
         return True
     return validate_token(token) == address_id
 
@@ -47,7 +44,13 @@ async def report(request: Request, id: str = "", token: str = "") -> Response:
 
     track("report_viewed", address_id)
     return templates.TemplateResponse(
-        request, "report.html", context={"report": full, "token": token}
+        request,
+        "report.html",
+        context={
+            "report": full,
+            "token": token,
+            "free_mode": report_free_access_enabled(),
+        },
     )
 
 

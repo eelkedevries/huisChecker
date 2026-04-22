@@ -9,6 +9,8 @@ from fastapi.templating import Jinja2Templates
 from huisChecker.address.preview import build_preview
 from huisChecker.address.search import resolve_address, search_addresses
 from huisChecker.analytics.store import track
+from huisChecker.config import report_free_access_enabled
+from huisChecker.payment.token import generate_token
 
 templates = Jinja2Templates(directory=str(Path(__file__).parent.parent / "templates"))
 
@@ -52,6 +54,14 @@ async def address_preview(request: Request, address_id: str) -> HTMLResponse:
             },
             status_code=404,
         )
+    free_mode = report_free_access_enabled()
+    report_token = generate_token(preview.address_id) if free_mode else ""
     return templates.TemplateResponse(
-        request, "address_preview.html", context={"preview": preview}
+        request,
+        "address_preview.html",
+        context={
+            "preview": preview,
+            "free_mode": free_mode,
+            "report_token": report_token,
+        },
     )

@@ -36,6 +36,21 @@
   margin-left: 1.5rem;
 }
 
+.hc-layer-coverage {
+  display: block;
+  color: #b45309; /* amber-700 */
+  background: #fffbeb; /* amber-50 */
+  border-left: 2px solid #fbbf24; /* amber-400 */
+  font-size: 0.6875rem;
+  font-style: italic;
+  margin-top: 0.25rem;
+  margin-left: 1.5rem;
+  padding: 0.25rem 0.5rem;
+  border-radius: 0 4px 4px 0;
+}
+
+.hc-layer-coverage.hidden { display: none; }
+
 .hc-legend-group-title {
   font-size: 0.75rem;
   font-weight: 600;

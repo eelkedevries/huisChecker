@@ -32,6 +32,7 @@
         data-focus-lat="{{ focus.lat }}"
         data-focus-lon="{{ focus.lon }}"
         {% if focus.label %}data-focus-label="{{ focus.label }}"{% endif %}
+        {% if focus.postcode4 %}data-focus-postcode4="{{ focus.postcode4 }}"{% endif %}
         {% endif %}
         {% if zoom %}data-zoom="{{ zoom }}"{% endif %}
       ></div>

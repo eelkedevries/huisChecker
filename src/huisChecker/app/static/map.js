@@ -33,11 +33,11 @@
   function featureStyle(props, fallbackColor, opacity) {
     var color = (props && props._color) || fallbackColor || "#334155";
     return {
-      color: "#1e293b",
-      weight: 1,
+      color: "#0f172a",
+      weight: 1.5,
       fillColor: color,
-      fillOpacity: opacity,
-      opacity: 0.8,
+      fillOpacity: Math.max(opacity, 0.35),
+      opacity: 0.9,
     };
   }
 
@@ -87,6 +87,7 @@
     var focusLat = parseFloat(root.dataset.focusLat);
     var focusLon = parseFloat(root.dataset.focusLon);
     var hasFocus = !isNaN(focusLat) && !isNaN(focusLon);
+    var focusPc4 = (root.dataset.focusPostcode4 || "").trim();
     var zoom = parseInt(root.dataset.zoom, 10);
     if (isNaN(zoom)) zoom = DEFAULT_ZOOM;
 
@@ -147,6 +148,12 @@
           cav.textContent = meta.caveat;
           togglesEl.appendChild(cav);
         }
+        // Placeholder for the per-layer PC4-coverage note, populated after
+        // the geojson arrives if no feature matches the focused PC4.
+        var coverage = document.createElement("span");
+        coverage.className = "hc-layer-coverage hidden";
+        coverage.dataset.layerKey = key;
+        togglesEl.appendChild(coverage);
 
         // Legend
         var legSec = buildLegendSection(meta);
@@ -188,7 +195,11 @@
       return fetch("/map/layers/" + encodeURIComponent(key) + ".geojson")
         .then(function (r) { return r.ok ? r.json() : null; })
         .then(function (gj) {
-          if (!gj) return null;
+          if (!gj) {
+            setCoverageNote(key, "Geen lokale laagdata geladen.");
+            return null;
+          }
+          updateCoverageFromGeoJSON(key, gj);
           var lyr = L.geoJSON(gj, {
             style: function (feature) {
               return featureStyle(feature.properties, null, state.opacity);
@@ -215,6 +226,38 @@
     function removeLayer(key) {
       var state = layerState[key];
       if (state && state.leafletLayer) map.removeLayer(state.leafletLayer);
+    }
+
+    function setCoverageNote(key, text) {
+      var el = togglesEl.querySelector('.hc-layer-coverage[data-layer-key="' + key + '"]');
+      if (!el) return;
+      if (!text) {
+        el.classList.add("hidden");
+        el.textContent = "";
+      } else {
+        el.classList.remove("hidden");
+        el.textContent = text;
+      }
+    }
+
+    function updateCoverageFromGeoJSON(key, gj) {
+      var features = (gj && gj.features) || [];
+      if (!features.length) {
+        setCoverageNote(key, "Geen lokale features in deze laag.");
+        return;
+      }
+      if (!focusPc4) {
+        setCoverageNote(key, null);
+        return;
+      }
+      var match = features.some(function (f) {
+        var p = (f && f.properties) || {};
+        return String(p.postcode4 || "") === focusPc4;
+      });
+      setCoverageNote(
+        key,
+        match ? null : "Geen lokale data voor PC4 " + focusPc4 + "."
+      );
     }
 
     function activeLayerKey() {

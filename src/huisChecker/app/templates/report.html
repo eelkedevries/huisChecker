@@ -49,6 +49,12 @@
       Postcodegebied {{ report.postcode4 }} &middot; {{ report.municipality_name }} &middot; {{ report.province_name }}
     </p>
     <p class="text-xs text-slate-400 mt-2">Gegenereerd op {{ report.generated_at }}</p>
+    {% if free_mode %}
+    <div class="hc-no-print mt-4 bg-amber-50 border border-amber-200 text-amber-800 text-xs rounded-lg px-3 py-2">
+      Ontwikkelmodus actief: volledige rapporten zijn tijdelijk gratis toegankelijk
+      (<code>REPORT_FREE_ACCESS=1</code>, <code>APP_ENV=development</code>). Betaalflow blijft in stand.
+    </div>
+    {% endif %}
   </header>
 
   <!-- Executive summary -->
