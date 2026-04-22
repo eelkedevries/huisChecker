@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+{% block title %}Rapport kopen — {{ preview.display_address }} — huisChecker{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto px-4 pt-10 pb-16">
+
+  <!-- Breadcrumb -->
+  <nav class="text-sm text-slate-400 mb-6">
+    <a href="/" class="hover:text-slate-700">huisChecker</a>
+    <span class="mx-2">&rsaquo;</span>
+    <a href="/address/{{ preview.address_id }}" class="hover:text-slate-700">Voorbeeldrapport</a>
+    <span class="mx-2">&rsaquo;</span>
+    <span>Kopen</span>
+  </nav>
+
+  <!-- Header -->
+  <div class="mb-8">
+    <h1 class="text-2xl font-bold text-slate-900 mb-1">Volledig rapport</h1>
+    <p class="text-slate-600">{{ preview.display_address }}</p>
+  </div>
+
+  <!-- What you get -->
+  <div class="bg-white border border-slate-200 rounded-xl p-6 mb-6">
+    <h2 class="text-sm font-semibold text-slate-700 uppercase tracking-wide mb-4">Wat zit er in het rapport?</h2>
+    <ul class="space-y-2 text-sm text-slate-700">
+      <li class="flex items-start gap-3"><span class="text-green-600 font-bold shrink-0 mt-0.5">&#10003;</span><span>Gebouwgegevens en bouwjaar (BAG / Kadaster)</span></li>
+      <li class="flex items-start gap-3"><span class="text-green-600 font-bold shrink-0 mt-0.5">&#10003;</span><span>Buurtstatistieken en bevolkingsdichtheid (CBS)</span></li>
+      <li class="flex items-start gap-3"><span class="text-green-600 font-bold shrink-0 mt-0.5">&#10003;</span><span>Leefbaarheidsanalyse en vergelijking met gemeente (Leefbaarometer)</span></li>
+      <li class="flex items-start gap-3"><span class="text-green-600 font-bold shrink-0 mt-0.5">&#10003;</span><span>Politiemeldingen en misdaadcijfers (Politie Open Data)</span></li>
+      <li class="flex items-start gap-3"><span class="text-green-600 font-bold shrink-0 mt-0.5">&#10003;</span><span>Klimaatrisico: overstroming, hittestress, geluid (Klimaateffectatlas)</span></li>
+      <li class="flex items-start gap-3"><span class="text-green-600 font-bold shrink-0 mt-0.5">&#10003;</span><span>PDF-export voor offline gebruik</span></li>
+    </ul>
+  </div>
+
+  <!-- Order form -->
+  <div class="bg-white border border-slate-200 rounded-xl p-6">
+    <div class="flex items-center justify-between mb-6">
+      <h2 class="text-sm font-semibold text-slate-700 uppercase tracking-wide">Bestelling</h2>
+      <span class="text-2xl font-bold text-slate-900">&euro;&nbsp;{{ price | replace(".", ",") }}</span>
+    </div>
+
+    <form method="post" action="/checkout/{{ preview.address_id }}">
+      <div class="mb-5">
+        <label for="email" class="block text-sm font-medium text-slate-700 mb-1">
+          E-mailadres <span class="text-slate-400 font-normal">(rapport wordt hiernaar gestuurd)</span>
+        </label>
+        <input
+          type="email"
+          id="email"
+          name="email"
+          required
+          autocomplete="email"
+          placeholder="u@voorbeeld.nl"
+          class="w-full border border-slate-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-slate-400"
+        />
+      </div>
+
+      <button
+        type="submit"
+        class="w-full bg-slate-900 text-white rounded-lg px-6 py-3 text-sm font-semibold hover:bg-slate-700 transition-colors"
+      >
+        Betalen via Mollie &rarr;
+      </button>
+    </form>
+
+    <p class="text-xs text-slate-400 mt-4 text-center">
+      Veilig betalen via iDEAL, creditcard of Bancontact &middot;
+      Éénmalige aankoop &middot; Geen abonnement
+    </p>
+  </div>
+
+  <p class="text-xs text-slate-400 text-center mt-6">
+    Na betaling ontvangt u direct een e-mail met uw persoonlijke rapportlink (1 jaar geldig).
+  </p>
+
+</div>
+{% endblock %}

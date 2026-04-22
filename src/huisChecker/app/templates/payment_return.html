@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+{% block title %}Betalingsstatus — huisChecker{% endblock %}
+
+{% block content %}
+<div class="max-w-lg mx-auto px-4 pt-16 pb-16 text-center">
+
+  {% if status == "paid" %}
+  <!-- This branch is rarely shown; successful payments redirect straight to /report. -->
+  <div class="text-4xl mb-4">&#10003;</div>
+  <h1 class="text-2xl font-bold text-slate-900 mb-2">Betaling ontvangen</h1>
+  <p class="text-slate-500 text-sm mb-6">Uw rapport is onderweg. Controleer uw e-mail voor de rapportlink.</p>
+
+  {% elif status in ("failed", "expired", "canceled") %}
+  <div class="text-4xl mb-4">&#10007;</div>
+  <h1 class="text-2xl font-bold text-slate-900 mb-2">Betaling niet geslaagd</h1>
+  <p class="text-slate-500 text-sm mb-6">
+    Status: <strong>{{ status }}</strong>. U kunt het opnieuw proberen.
+  </p>
+  <a href="/" class="inline-block bg-slate-900 text-white rounded-lg px-6 py-3 text-sm font-semibold hover:bg-slate-700 transition-colors">
+    Terug naar huisChecker
+  </a>
+
+  {% else %}
+  <!-- open / pending: poll for status -->
+  <div class="inline-block w-8 h-8 border-4 border-slate-200 border-t-slate-700 rounded-full animate-spin mb-6"></div>
+  <h1 class="text-2xl font-bold text-slate-900 mb-2">Betaling wordt verwerkt&hellip;</h1>
+  <p class="text-slate-500 text-sm mb-6">
+    Dit duurt meestal maar een paar seconden. U wordt automatisch doorgestuurd zodra uw betaling is bevestigd.
+  </p>
+  <p class="text-xs text-slate-400">Sluit dit venster niet.</p>
+
+  <script>
+    (function () {
+      var sid = {{ session_id | tojson }};
+      var attempts = 0;
+      var maxAttempts = 30;
+
+      function poll() {
+        if (attempts >= maxAttempts) {
+          document.getElementById("timeout-msg").style.display = "block";
+          return;
+        }
+        attempts++;
+        fetch("/payment/status?session_id=" + encodeURIComponent(sid))
+          .then(function (r) { return r.json(); })
+          .then(function (data) {
+            if (data.status === "paid" && data.report_url) {
+              window.location.href = data.report_url;
+            } else if (data.status === "failed" || data.status === "expired" || data.status === "canceled") {
+              window.location.reload();
+            } else {
+              setTimeout(poll, 3000);
+            }
+          })
+          .catch(function () { setTimeout(poll, 5000); });
+      }
+
+      setTimeout(poll, 2000);
+    })();
+  </script>
+
+  <div id="timeout-msg" style="display:none;" class="mt-8 text-sm text-slate-500">
+    <p>Duurt het langer dan verwacht? Controleer uw e-mail voor een bevestiging,
+    of <a href="/" class="underline">ga terug naar de homepage</a>.</p>
+  </div>
+  {% endif %}
+
+</div>
+{% endblock %}

@@ -20,7 +20,7 @@
         class="bg-white border border-slate-300 text-slate-700 rounded-lg px-4 py-2 text-sm hover:bg-slate-50 transition-colors"
       >Printen</button>
       <a
-        href="/report.pdf?id={{ report.address_id }}"
+        href="/report.pdf?id={{ report.address_id }}{% if token %}&token={{ token }}{% endif %}"
         class="bg-slate-900 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-slate-700 transition-colors"
       >Download PDF</a>
     </div>

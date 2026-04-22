@@ -8,6 +8,7 @@ from fastapi.templating import Jinja2Templates
 
 from huisChecker.address.preview import build_preview
 from huisChecker.address.search import search_addresses
+from huisChecker.analytics.store import track
 
 templates = Jinja2Templates(directory=str(Path(__file__).parent.parent / "templates"))
 
@@ -22,6 +23,7 @@ async def address_search(request: Request) -> Response:
             request, "address.html", context={"query": "", "candidates": [], "no_query": True}
         )
     candidates = search_addresses(query)
+    track("address_search")
     if len(candidates) == 1:
         return RedirectResponse(url=f"/address/{candidates[0].id}", status_code=303)
     return templates.TemplateResponse(
@@ -34,6 +36,8 @@ async def address_search(request: Request) -> Response:
 @router.get("/address/{address_id}", response_class=HTMLResponse)
 async def address_preview(request: Request, address_id: str) -> HTMLResponse:
     preview = build_preview(address_id)
+    if preview is not None:
+        track("preview_viewed", address_id)
     if preview is None:
         return templates.TemplateResponse(
             request,
