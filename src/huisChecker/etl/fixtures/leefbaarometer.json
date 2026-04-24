@@ -4,6 +4,7 @@
     {"postcode4": "1011", "score": 5.8, "band": "voldoende"},
     {"postcode4": "1012", "score": 6.1, "band": "voldoende"},
     {"postcode4": "3011", "score": 5.4, "band": "matig"},
-    {"postcode4": "3511", "score": 6.7, "band": "goed"}
+    {"postcode4": "3511", "score": 6.7, "band": "goed"},
+    {"postcode4": "2316", "score": 6.4, "band": "voldoende"}
   ]
 }

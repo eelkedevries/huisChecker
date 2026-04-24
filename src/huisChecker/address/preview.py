@@ -1,10 +1,13 @@
 """Free preview assembly.
 
-Resolves an address via the PDOK cache (nationwide) and enriches it with local
-curated datasets: BAG object attributes, postcode4 area metrics (CBS,
-Leefbaarometer, police, climate), and municipality/province lookup. Addresses
-outside the curated footprint still render, with a partial-preview flag and
-None values where enrichment is unavailable.
+Resolves an address via the PDOK cache (nationwide) and enriches it
+through remote-first source adapters (CBS, BAG, politie, klimaat,
+leefbaarometer). Each adapter is scope-gated via `huisChecker.scope`
+so out-of-scope pc4s never trigger a remote call; when in-scope and
+the remote/cache path yields nothing, adapters fall back to the
+minimal local subset (curated CSV). Per-module missing-data messaging
+stays precise: a section with no data from any layer is listed, but
+the banner does not fire when enrichment is actually available.
 """
 
 from __future__ import annotations
@@ -15,6 +18,12 @@ from pathlib import Path
 from huisChecker.address.search import resolve_address
 from huisChecker.etl.io import read_csv
 from huisChecker.etl.manifest import read_manifest
+from huisChecker.remote import bag as bag_adapter
+from huisChecker.remote import cbs as cbs_adapter
+from huisChecker.remote import klimaat as klimaat_adapter
+from huisChecker.remote import leefbaarometer as lb_adapter
+from huisChecker.remote import politie as politie_adapter
+from huisChecker.scope import current_scope
 
 
 @dataclass(frozen=True)
@@ -54,6 +63,8 @@ class AddressPreview:
     cautions: tuple[str, ...]
     is_partial: bool
     missing_layers: tuple[str, ...]
+    in_scope: bool
+    data_sources: dict[str, str]
 
 
 def _default_data_root() -> Path:
@@ -61,28 +72,17 @@ def _default_data_root() -> Path:
 
 
 def _normalise_postcode4(value: str | None) -> str:
-    """Return a 4-digit PC4 code, stripped of spaces and PC6 suffixes."""
     if not value:
         return ""
     digits = "".join(ch for ch in value.strip() if ch.isdigit())
     return digits[:4]
 
 
-def _index(rows: list[dict[str, str]], key: str) -> dict[str, dict[str, str]]:
-    idx: dict[str, dict[str, str]] = {}
-    for row in rows:
-        raw = (row.get(key) or "").strip()
-        if not raw:
-            continue
-        # Postcode keys get normalised so 4-digit joins are canonical.
-        canonical = _normalise_postcode4(raw) if key == "postcode4" else raw
-        if canonical:
-            idx[canonical] = row
-    return idx
-
-
-def _or_none(value: str | None) -> str | None:
-    return value if value else None
+def _or_none(value) -> str | None:
+    if value is None:
+        return None
+    s = str(value).strip()
+    return s if s else None
 
 
 def _format_use_purpose(raw: str) -> str:
@@ -113,9 +113,7 @@ def _derive_signals(
     cautions: list[str] = []
 
     if lb_band in ("goed", "zeer_goed"):
-        strengths.append(
-            "Leefbaarheid in dit postcodegebied scoort als goed (Leefbaarometer)."
-        )
+        strengths.append("Leefbaarheid in dit postcodegebied scoort als goed (Leefbaarometer).")
     elif lb_band in ("matig", "slecht", "zeer_slecht"):
         cautions.append(
             "Leefbaarheid in dit postcodegebied scoort als matig of lager (Leefbaarometer)."
@@ -131,9 +129,7 @@ def _derive_signals(
         )
 
     if heat_class in ("groot", "zeer_groot"):
-        cautions.append(
-            "Verhoogde hittestress in dit postcodegebied (Klimaateffectatlas)."
-        )
+        cautions.append("Verhoogde hittestress in dit postcodegebied (Klimaateffectatlas).")
 
     if noise_class in ("hoog", "zeer_hoog"):
         cautions.append(
@@ -148,6 +144,18 @@ def _read_period(manifests_root: Path, source_key: str, fallback: str) -> str:
     if manifest and manifest.reference_period:
         return manifest.reference_period
     return fallback
+
+
+def _index(rows: list[dict[str, str]], key: str) -> dict[str, dict[str, str]]:
+    idx: dict[str, dict[str, str]] = {}
+    for row in rows:
+        raw = (row.get(key) or "").strip()
+        if not raw:
+            continue
+        canonical = _normalise_postcode4(raw) if key == "postcode4" else raw
+        if canonical:
+            idx[canonical] = row
+    return idx
 
 
 def _load_csv(path: Path) -> list[dict[str, str]]:
@@ -166,24 +174,58 @@ def build_preview(address_id: str, data_root: Path | None = None) -> AddressPrev
         return None
 
     pc4_key = _normalise_postcode4(resolved.postcode4)
+    scope = current_scope()
+    in_scope = scope.covers(
+        pc4=pc4_key,
+        municipality=resolved.municipality_code,
+        province=resolved.province_code,
+    )
+    sources: dict[str, str] = {}
 
-    bag_objects = _index(_load_csv(curated / "bag_objects.csv"), "id")
-    bag = bag_objects.get(resolved.bag_object_id) if resolved.bag_object_id else None
+    # --- BAG: remote adapter first, local fallback inside adapter -----------
+    bag_payload = bag_adapter.fetch_object(resolved.bag_object_id, data_root=root)
+    if bag_payload:
+        sources["bag"] = str(bag_payload.get("source", ""))
 
-    overview_rows = _load_csv(curated / "postcode4_overview.csv")
-    overview = _index(overview_rows, "postcode4")
-    pc4 = overview.get(pc4_key, {})
+    construction_year = _or_none(bag_payload.get("construction_year")) if bag_payload else None
+    surface_area_m2 = _or_none(bag_payload.get("surface_area_m2")) if bag_payload else None
+    use_purpose_raw = (bag_payload.get("use_purpose") or "") if bag_payload else ""
+    use_purpose = _or_none(_format_use_purpose(use_purpose_raw))
+    bag_lat = bag_payload.get("latitude") if bag_payload else None
+    bag_lon = bag_payload.get("longitude") if bag_payload else None
+    latitude = bag_lat if bag_lat is not None else resolved.latitude
+    longitude = bag_lon if bag_lon is not None else resolved.longitude
 
-    # Per-module indices so missing-data messaging can be precise rather
-    # than lumping every module into one blanket "Buurtcijfers" string.
-    cbs_idx = _index(_load_csv(curated / "postcode4_metrics.csv"), "geography_code")
-    leef_idx = _index(_load_csv(curated / "leefbaarometer_pc4.csv"), "postcode4")
-    politie_idx = _index(_load_csv(curated / "politie_pc4_incidents.csv"), "postcode4")
-    klimaat_idx = _index(_load_csv(curated / "klimaat_pc4.csv"), "postcode4")
+    # --- CBS / Leefbaarometer / Politie / Klimaat via adapters --------------
+    cbs_payload = cbs_adapter.fetch_pc4(pc4_key, data_root=root)
+    if cbs_payload:
+        sources["cbs"] = str(cbs_payload.get("source", ""))
+    density = _or_none(cbs_payload.get("population_density")) if cbs_payload else None
 
+    lb_payload = lb_adapter.fetch_pc4(pc4_key, data_root=root)
+    if lb_payload:
+        sources["leefbaarometer"] = str(lb_payload.get("source", ""))
+    lb_score = _or_none(lb_payload.get("score")) if lb_payload else None
+    lb_band = _or_none(lb_payload.get("band")) if lb_payload else None
+
+    politie_payload = politie_adapter.fetch_pc4(
+        pc4_key, municipality_code=resolved.municipality_code, data_root=root
+    )
+    if politie_payload:
+        sources["politie"] = str(politie_payload.get("source", ""))
+    incidents = _or_none(politie_payload.get("incidents_per_1000")) if politie_payload else None
+
+    klimaat_payload = klimaat_adapter.fetch_pc4(pc4_key, data_root=root)
+    if klimaat_payload:
+        sources["klimaat"] = str(klimaat_payload.get("source", ""))
+    kp = klimaat_payload or {}
+    flood_class = _or_none(kp.get("flood_probability_class"))
+    heat_class = _or_none(kp.get("heat_stress_class"))
+    noise_class = _or_none(kp.get("road_noise_class"))
+
+    # --- Municipality / province naming from the minimal subset -------------
     municipalities = _index(_load_csv(curated / "municipalities.csv"), "code")
     mun = municipalities.get(resolved.municipality_code, {})
-
     provinces = _index(_load_csv(curated / "provinces.csv"), "code")
     prov = provinces.get(resolved.province_code, {})
 
@@ -192,51 +234,27 @@ def build_preview(address_id: str, data_root: Path | None = None) -> AddressPrev
         display += f" {resolved.house_number_addition}"
     display += f", {resolved.city} ({resolved.postcode})"
 
-    construction_year = _or_none(bag.get("construction_year") if bag else None)
-    surface_area_m2 = _or_none(bag.get("surface_area_m2") if bag else None)
-    use_purpose_raw = bag.get("use_purpose", "") if bag else ""
-    use_purpose = _or_none(_format_use_purpose(use_purpose_raw))
-
-    bag_lat: float | None = None
-    bag_lon: float | None = None
-    if bag:
-        try:
-            bag_lat = float(bag["latitude"]) if bag.get("latitude") else None
-            bag_lon = float(bag["longitude"]) if bag.get("longitude") else None
-        except (TypeError, ValueError):
-            bag_lat = bag_lon = None
-    latitude = bag_lat if bag_lat is not None else resolved.latitude
-    longitude = bag_lon if bag_lon is not None else resolved.longitude
-
-    lb_score = _or_none(pc4.get("leefbaarometer_score"))
-    lb_band = _or_none(pc4.get("leefbaarometer_band"))
-    flood_class = _or_none(pc4.get("flood_probability_class"))
-    heat_class = _or_none(pc4.get("heat_stress_class"))
-    noise_class = _or_none(pc4.get("road_noise_class"))
-    incidents = _or_none(pc4.get("incidents_per_1000"))
-    density = _or_none(pc4.get("population_density"))
-
     strengths, cautions = _derive_signals(lb_band, flood_class, heat_class, noise_class)
 
+    # Per-module coverage: only flag modules that returned no data at all.
     missing: list[str] = []
-    if bag is None:
+    if bag_payload is None:
         missing.append("BAG-gebouwgegevens")
-    # Per-module coverage: check each source CSV individually so we can tell
-    # the user exactly which module has no row for this postcode4.
-    if pc4_key not in cbs_idx and density is None:
+    if density is None:
         missing.append("CBS kerncijfers")
-    if pc4_key not in leef_idx and lb_score is None:
+    if lb_score is None and lb_band is None:
         missing.append("Leefbaarometer")
-    if pc4_key not in politie_idx and incidents is None:
+    if incidents is None:
         missing.append("Politiemeldingen")
-    if (
-        pc4_key not in klimaat_idx
-        and flood_class is None
-        and heat_class is None
-        and noise_class is None
-    ):
+    if flood_class is None and heat_class is None and noise_class is None:
         missing.append("Klimaat- en milieuklassen")
-    is_partial = bool(missing)
+
+    # Banner fires only when *every* module is empty.
+    all_empty = len(missing) == 5
+    is_partial = all_empty or (bool(missing) and not any((
+        density, lb_score, lb_band, incidents, flood_class, heat_class, noise_class,
+        construction_year, surface_area_m2, use_purpose,
+    )))
 
     return AddressPreview(
         address_id=resolved.address_id,
@@ -274,6 +292,8 @@ def build_preview(address_id: str, data_root: Path | None = None) -> AddressPrev
         cautions=cautions,
         is_partial=is_partial,
         missing_layers=tuple(missing),
+        in_scope=in_scope,
+        data_sources=sources,
     )
 
 

@@ -27,6 +27,9 @@ Thumbs.db
 # logs
 *.log
 
-# ETL curated outputs and manifests (regenerated from fixtures or live sources)
+# ETL curated outputs, remote-adapter cache, and local SQLite
+# (regenerated from fixtures / live sources / scope-refresh).
 data/curated/
 data/manifests/
+data/cache/
+data/huisChecker.db

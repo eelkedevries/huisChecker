@@ -70,7 +70,7 @@ def test_address_preview_not_found_does_not_show_raw_id() -> None:
 def test_address_search_then_preview_resolves_without_lookup() -> None:
     """Searching warms the cache so the preview route works after clicking a result."""
     # Trigger search to warm cache (single-result query redirects to preview)
-    r = client.get(f"/address?q=Damrak+12+Amsterdam")
+    r = client.get("/address?q=Damrak+12+Amsterdam")
     assert r.status_code in (200, 303)
     # Preview must resolve from cache, not need a fresh PDOK lookup
     r2 = client.get(f"/address/{VALID_ADDRESS_ID}")

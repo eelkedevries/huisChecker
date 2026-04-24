@@ -28,10 +28,17 @@
   <div class="mb-8 bg-amber-50 border border-amber-200 rounded-xl p-4 text-sm text-amber-800">
     <p class="font-medium mb-1">Gedeeltelijk voorbeeldrapport</p>
     <p>
-      Dit adres is gevonden via BAG/PDOK, maar de lokale verrijking is beperkt.
-      De volgende gegevens ontbreken voor dit postcodegebied:
-      <strong>{{ preview.missing_layers | join(', ') }}</strong>.
-      Velden zonder bron worden leeg getoond.
+      Dit adres valt buiten de huidige remote- en lokale scope (2316 / Leiden / Zuid-Holland).
+      De volgende modules hebben geen data: <strong>{{ preview.missing_layers | join(', ') }}</strong>.
+    </p>
+  </div>
+  {% elif preview.missing_layers %}
+  <div class="mb-8 bg-slate-50 border border-slate-200 rounded-xl p-4 text-xs text-slate-600">
+    <p class="font-medium mb-1">Per-module dekking</p>
+    <p>
+      Niet elke bron heeft data voor dit adres. Modules zonder resultaat:
+      <strong>{{ preview.missing_layers | join(', ') }}</strong>. Overige modules tonen
+      de meest recente remote- of subset-waarden.
     </p>
   </div>
   {% endif %}
@@ -118,7 +125,7 @@
   {% with
     map_id="preview-map",
     map_title="Kaart en kaartlagen",
-    layer_keys=["bag_footprints", "leefbaarometer_pc4", "klimaateffect_flood"],
+    layer_keys=["bag_footprints", "leefbaarometer_pc4", "klimaateffect_flood", "klimaateffect_flood_wms"],
     focus={"lat": preview.latitude, "lon": preview.longitude, "label": preview.display_address, "postcode4": preview.postcode4},
     zoom=14,
     map_caveat="Overlays zijn op postcodegebied-niveau; geen adresspecifieke uitspraken."

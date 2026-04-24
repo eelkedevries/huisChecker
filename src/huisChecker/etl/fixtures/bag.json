@@ -48,6 +48,18 @@
       "postcode4": "3511",
       "municipality_code": "GM0344",
       "province_code": "PV26"
+    },
+    {
+      "postcode": "2316HB",
+      "house_number": 29,
+      "house_number_addition": null,
+      "street": "Maresingel",
+      "city": "Leiden",
+      "nummeraanduiding_id": "0546200000293112",
+      "bag_object_id": "0546010000293112",
+      "postcode4": "2316",
+      "municipality_code": "GM0546",
+      "province_code": "PV28"
     }
   ],
   "bag_objects": [
@@ -82,6 +94,14 @@
       "surface_area_m2": 110,
       "latitude": 52.0907,
       "longitude": 5.1214
+    },
+    {
+      "id": "0546010000293112",
+      "construction_year": 1905,
+      "use_purpose": ["woonfunctie"],
+      "surface_area_m2": 112,
+      "latitude": 52.1689,
+      "longitude": 4.4903
     }
   ]
 }

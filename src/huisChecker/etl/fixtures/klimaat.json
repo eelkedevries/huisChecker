@@ -4,18 +4,21 @@
     {"postcode4": "1011", "class": "middelgroot"},
     {"postcode4": "1012", "class": "middelgroot"},
     {"postcode4": "3011", "class": "groot"},
-    {"postcode4": "3511", "class": "klein"}
+    {"postcode4": "3511", "class": "klein"},
+    {"postcode4": "2316", "class": "middelgroot"}
   ],
   "heat_stress_pc4": [
     {"postcode4": "1011", "class": "groot"},
     {"postcode4": "1012", "class": "groot"},
     {"postcode4": "3011", "class": "middelgroot"},
-    {"postcode4": "3511", "class": "middelgroot"}
+    {"postcode4": "3511", "class": "middelgroot"},
+    {"postcode4": "2316", "class": "middelgroot"}
   ],
   "atlas_leefomgeving_noise_pc4": [
     {"postcode4": "1011", "road_noise_class": "zeer_hoog"},
     {"postcode4": "1012", "road_noise_class": "hoog"},
     {"postcode4": "3011", "road_noise_class": "hoog"},
-    {"postcode4": "3511", "road_noise_class": "middelgroot"}
+    {"postcode4": "3511", "road_noise_class": "middelgroot"},
+    {"postcode4": "2316", "road_noise_class": "hoog"}
   ]
 }

@@ -17,6 +17,7 @@ from huisChecker.layers.definitions import (
     LayerDefinition,
     LegendConfig,
     OpacityConfig,
+    RemoteTileConfig,
     layer_registry,
 )
 from huisChecker.layers.styling import feature_color, feature_label
@@ -32,11 +33,27 @@ def layers_dir(data_root: Path | None = None) -> Path:
 
 
 def available_keys(data_root: Path | None = None) -> tuple[str, ...]:
+    """Local-file-backed layers. Remote-only layers are exposed via `remote_keys`."""
     folder = layers_dir(data_root)
     return tuple(
         layer.key
         for layer in layer_registry.all()
         if (folder / layer.resolved_data_file).exists()
+    )
+
+
+def remote_keys() -> tuple[str, ...]:
+    return tuple(layer.key for layer in layer_registry.all() if layer.remote is not None)
+
+
+def renderable_keys(data_root: Path | None = None) -> tuple[str, ...]:
+    """Local + remote-backed layer keys, in registry order."""
+    local = set(available_keys(data_root))
+    remote = set(remote_keys())
+    return tuple(
+        layer.key
+        for layer in layer_registry.all()
+        if layer.key in local or layer.key in remote
     )
 
 
@@ -87,6 +104,21 @@ def _metadata_dict(layer: LayerDefinition) -> dict[str, Any]:
         "caveat": layer.caveat,
         "opacity": _opacity_dict(layer.opacity),
         "legend": _legend_dict(layer.legend),
+        "remote": _remote_dict(layer.remote),
+    }
+
+
+def _remote_dict(remote: RemoteTileConfig | None) -> dict[str, Any] | None:
+    if remote is None:
+        return None
+    return {
+        "kind": remote.kind,
+        "tile_url": remote.tile_url,
+        "layer_name": remote.layer_name,
+        "attribution": remote.attribution,
+        "format": remote.format,
+        "transparent": remote.transparent,
+        "explanatory_note": remote.explanatory_note,
     }
 
 
@@ -119,4 +151,6 @@ __all__ = [
     "layers_dir",
     "load_styled_geojson",
     "registry_payload",
+    "remote_keys",
+    "renderable_keys",
 ]

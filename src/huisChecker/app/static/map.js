@@ -192,6 +192,31 @@
         state.leafletLayer.addTo(map);
         return Promise.resolve(state.leafletLayer);
       }
+      if (state.meta && state.meta.remote && state.meta.remote.tile_url) {
+        var r = state.meta.remote;
+        var lyr;
+        if (r.kind === "wms") {
+          lyr = L.tileLayer.wms(r.tile_url, {
+            layers: r.layer_name || "",
+            format: r.format || "image/png",
+            transparent: r.transparent !== false,
+            attribution: r.attribution || "",
+            opacity: state.opacity,
+          });
+        } else {
+          lyr = L.tileLayer(r.tile_url, {
+            attribution: r.attribution || "",
+            opacity: state.opacity,
+          });
+        }
+        lyr.addTo(map);
+        state.leafletLayer = lyr;
+        setCoverageNote(
+          key,
+          r.explanatory_note || "Laag wordt remote gerenderd."
+        );
+        return Promise.resolve(lyr);
+      }
       return fetch("/map/layers/" + encodeURIComponent(key) + ".geojson")
         .then(function (r) { return r.ok ? r.json() : null; })
         .then(function (gj) {
@@ -274,6 +299,10 @@
       if (!state) return;
       state.opacity = value;
       if (!state.leafletLayer) return;
+      if (state.leafletLayer.setOpacity) {
+        state.leafletLayer.setOpacity(value);
+        return;
+      }
       state.leafletLayer.setStyle(function (feature) {
         return featureStyle(feature.properties, null, value);
       });

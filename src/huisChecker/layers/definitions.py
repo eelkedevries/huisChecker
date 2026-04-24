@@ -56,6 +56,25 @@ class OpacityConfig(BaseModel):
     user_adjustable: bool = True
 
 
+class RemoteTileConfig(BaseModel):
+    """Pointer to a remote WMS/WMTS service that renders this overlay.
+
+    When set, the layer is painted client-side from the remote service
+    rather than from a local geojson file. `layer_name` is the WMS
+    `LAYERS` param; `attribution` shows up in the Leaflet corner.
+    """
+
+    model_config = ConfigDict(frozen=True, extra="forbid")
+
+    kind: str = Field(default="wms", pattern=r"^(wms|wmts|xyz)$")
+    tile_url: str
+    layer_name: str | None = None
+    attribution: str = ""
+    format: str = "image/png"
+    transparent: bool = True
+    explanatory_note: str | None = None
+
+
 class LayerDefinition(BaseModel):
     model_config = ConfigDict(frozen=True, extra="forbid")
 
@@ -76,6 +95,9 @@ class LayerDefinition(BaseModel):
     # Filename of curated geojson under data/curated/layers/. Defaults to
     # f"{key}.geojson" if not set.
     data_file: str | None = None
+    # Remote tile service pointer for remote-first overlays. When set, the
+    # frontend renders this layer from the service; `data_file` is optional.
+    remote: RemoteTileConfig | None = None
 
     @property
     def resolved_feature_property(self) -> str | None:
@@ -199,6 +221,27 @@ layer_registry.register_many(
             legend=None,
             caveat="Reference layer only; no value encoded.",
         ),
+        LayerDefinition(
+            key="klimaateffect_flood_wms",
+            label="Overstromingskans (KEA WMS)",
+            source_dataset_key="klimaateffectatlas",
+            geometry_type=GeometryType.RASTER,
+            supported_geographies=(GeographyLevel.POSTCODE4,),
+            value_field=None,
+            legend=None,
+            caveat="Rendered live from Klimaateffectatlas WMS; scenario-based classes.",
+            remote=RemoteTileConfig(
+                kind="wms",
+                tile_url="https://service.pdok.nl/rws/klimaateffectatlas/wms/v1_0",
+                layer_name="overstromingskans_2050",
+                attribution="Klimaateffectatlas (CAS)",
+                explanatory_note=(
+                    "Laag wordt rechtstreeks van de Klimaateffectatlas WMS "
+                    "gehaald; bij storing of geen dekking toont de kaart een lege "
+                    "overlay met deze toelichting."
+                ),
+            ),
+        ),
     ]
 )
 
@@ -211,5 +254,6 @@ __all__ = [
     "LegendStop",
     "LegendType",
     "OpacityConfig",
+    "RemoteTileConfig",
     "layer_registry",
 ]

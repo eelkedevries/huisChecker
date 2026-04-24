@@ -8,6 +8,7 @@ from huisChecker.layers.definitions import (
     LegendStop,
     LegendType,
     OpacityConfig,
+    RemoteTileConfig,
     layer_registry,
 )
 from huisChecker.layers.service import (
@@ -27,6 +28,7 @@ __all__ = [
     "LegendStop",
     "LegendType",
     "OpacityConfig",
+    "RemoteTileConfig",
     "available_keys",
     "enrich_geojson",
     "feature_color",
