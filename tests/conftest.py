@@ -84,6 +84,26 @@ FIXTURE_PDOK_ADDRESSES: dict[str, PdokAddress] = {
         latitude=52.0907,
         longitude=5.1214,
     ),
+    # Leiden Maresingel: PC4 2316, inside local + remote scope, carries
+    # Leefbaarometer dimensions in the fixture.
+    "0546200000293112": PdokAddress(
+        id="0546200000293112",
+        weergavenaam="Maresingel 29, 2316HB Leiden",
+        straatnaam="Maresingel",
+        huisnummer="29",
+        huisletter="",
+        huisnummertoevoeging="",
+        postcode="2316HB",
+        woonplaatsnaam="Leiden",
+        gemeentenaam="Leiden",
+        gemeentecode="0546",
+        provincienaam="Zuid-Holland",
+        provinciecode="28",
+        adresseerbaarobject_id="0546010000293112",
+        nummeraanduiding_id="0546200000293112",
+        latitude=52.1630,
+        longitude=4.5030,
+    ),
     # Leiden: present in PDOK but outside the local curated enrichment.
     "0546200000999999": PdokAddress(
         id="0546200000999999",

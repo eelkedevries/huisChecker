@@ -1,10 +1,28 @@
 {
   "reference_period": "2022",
+  "dimension_keys": [
+    "woningvoorraad",
+    "fysieke_omgeving",
+    "voorzieningen",
+    "sociale_samenhang",
+    "overlast_en_onveiligheid"
+  ],
   "pc4_scores": [
     {"postcode4": "1011", "score": 5.8, "band": "voldoende"},
     {"postcode4": "1012", "score": 6.1, "band": "voldoende"},
     {"postcode4": "3011", "score": 5.4, "band": "matig"},
     {"postcode4": "3511", "score": 6.7, "band": "goed"},
-    {"postcode4": "2316", "score": 6.4, "band": "voldoende"}
+    {
+      "postcode4": "2316",
+      "score": 6.4,
+      "band": "voldoende",
+      "dimensions": {
+        "woningvoorraad": 6.3,
+        "fysieke_omgeving": 6.7,
+        "voorzieningen": 6.5,
+        "sociale_samenhang": 6.1,
+        "overlast_en_onveiligheid": 6.0
+      }
+    }
   ]
 }

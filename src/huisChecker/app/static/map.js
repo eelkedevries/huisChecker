@@ -275,14 +275,39 @@
         setCoverageNote(key, null);
         return;
       }
-      var match = features.some(function (f) {
+      var matched = null;
+      for (var i = 0; i < features.length; i++) {
+        var f = features[i];
         var p = (f && f.properties) || {};
-        return String(p.postcode4 || "") === focusPc4;
+        if (String(p.postcode4 || "") === focusPc4) { matched = f; break; }
+      }
+      if (!matched) {
+        setCoverageNote(key, "Geen lokale data voor PC4 " + focusPc4 + ".");
+        return;
+      }
+      if (isNilIslandGeometry(matched.geometry)) {
+        setCoverageNote(
+          key,
+          "Data aanwezig, maar geometrie ontbreekt voor PC4 " + focusPc4 +
+          " (overlay niet zichtbaar op kaart)."
+        );
+        return;
+      }
+      setCoverageNote(key, null);
+    }
+
+    function isNilIslandGeometry(geometry) {
+      if (!geometry || !geometry.coordinates) return false;
+      function flat(coords, out) {
+        if (typeof coords[0] === "number") { out.push(coords); return; }
+        for (var i = 0; i < coords.length; i++) flat(coords[i], out);
+      }
+      var pts = [];
+      flat(geometry.coordinates, pts);
+      if (!pts.length) return true;
+      return pts.every(function (pt) {
+        return Math.abs(pt[0]) < 0.1 && Math.abs(pt[1]) < 0.1;
       });
-      setCoverageNote(
-        key,
-        match ? null : "Geen lokale data voor PC4 " + focusPc4 + "."
-      );
     }
 
     function activeLayerKey() {

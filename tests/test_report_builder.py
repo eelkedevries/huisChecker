@@ -13,6 +13,7 @@ from huisChecker.report import (
 )
 
 ADDRESS_ID = "0363200000123456"
+LEIDEN_MARESINGEL = "0546200000293112"
 
 
 def test_build_full_report_returns_none_for_unknown_address() -> None:
@@ -85,6 +86,44 @@ def test_sources_listing_covers_used_datasets() -> None:
     keys = {s.key for s in report.sources}
     for required in ("bag", "cbs_kerncijfers_pc4", "leefbaarometer", "politie_opendata"):
         assert required in keys, f"missing source listing: {required}"
+
+
+def test_liveability_section_surfaces_official_dimensions_when_available() -> None:
+    report = build_full_report(LEIDEN_MARESINGEL)
+    assert report is not None
+    live = next(
+        s for s in report.sections if s.key == ReportModuleKey.LIVEABILITY.value
+    )
+    labels = [f.label for f in live.findings]
+    # Overall score stays the first, primary finding.
+    assert labels[0] == "Leefbaarometer-score (overall)"
+    # All five official dimension names appear, in registry order, as findings.
+    dim_labels = [lab for lab in labels if lab.startswith("Dimensie · ")]
+    assert dim_labels == [
+        "Dimensie · Woningvoorraad",
+        "Dimensie · Fysieke omgeving",
+        "Dimensie · Voorzieningen",
+        "Dimensie · Sociale samenhang",
+        "Dimensie · Overlast en onveiligheid",
+    ]
+    # No fallback disclaimer when real dimension values are present.
+    assert not any(
+        f.value == "alleen overall score beschikbaar" for f in live.findings
+    )
+
+
+def test_liveability_section_states_fallback_when_only_overall_available() -> None:
+    # Damrak fixture ships only the overall score for PC4 1011.
+    report = build_full_report(ADDRESS_ID)
+    assert report is not None
+    live = next(
+        s for s in report.sections if s.key == ReportModuleKey.LIVEABILITY.value
+    )
+    assert any(
+        f.label == "Leefbaarometer dimensies"
+        and f.value == "alleen overall score beschikbaar"
+        for f in live.findings
+    )
 
 
 def test_report_route_renders_full_report() -> None:

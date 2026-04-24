@@ -172,3 +172,81 @@ def test_every_registered_layer_with_data_file_round_trips() -> None:
             "_color" in (f.get("properties") or {}) for f in data["features"]
         )
         assert has_color, f"{key}: no features resolved a legend color"
+
+
+# --- Leefbaarometer overlay: data, geometry, legend, dimensions ------------
+
+
+def _lb_feature_for(pc4: str) -> dict:
+    data = load_styled_geojson("leefbaarometer_pc4")
+    assert data is not None
+    for feature in data["features"]:
+        if (feature.get("properties") or {}).get("postcode4") == pc4:
+            return feature
+    raise AssertionError(f"no feature for PC4 {pc4}")
+
+
+def test_leefbaarometer_layer_is_default_visible_and_categorical() -> None:
+    layer = layer_registry.get("leefbaarometer_pc4")
+    assert layer.default_visible is True
+    assert layer.legend is not None
+    assert layer.legend.type == LegendType.CATEGORICAL
+    # Overall-score overlay uses the band property for colouring.
+    assert layer.resolved_feature_property == "band"
+    # Opacity must be clearly visible but not fully opaque.
+    assert 0.5 <= layer.opacity.default <= 0.9
+
+
+def test_leefbaarometer_legend_stops_match_all_band_values() -> None:
+    """Legend colours must map 1:1 with band values shipped in the data."""
+    data = load_styled_geojson("leefbaarometer_pc4")
+    assert data is not None
+    layer = layer_registry.get("leefbaarometer_pc4")
+    stop_values = {s.value for s in layer.legend.stops}
+    bands_in_data = {
+        (f.get("properties") or {}).get("band") for f in data["features"]
+    }
+    bands_in_data.discard(None)
+    assert bands_in_data, "expected at least one band in shipped layer"
+    assert bands_in_data.issubset(stop_values), (
+        f"bands without matching legend stop: {bands_in_data - stop_values}"
+    )
+
+
+def test_leefbaarometer_feature_matches_pc4_2316_with_visible_geometry() -> None:
+    feature = _lb_feature_for("2316")
+    props = feature["properties"]
+    # Colour must resolve (legend-to-style consistency).
+    assert props.get("_color", "").startswith("#")
+    assert props.get("_label") == "voldoende"
+
+    # Geometry must not be the nil-island fallback.
+    ring = feature["geometry"]["coordinates"][0]
+    lons = [pt[0] for pt in ring]
+    lats = [pt[1] for pt in ring]
+    assert max(abs(x) for x in lons) > 1.0, "nil-island longitude"
+    assert max(abs(y) for y in lats) > 1.0, "nil-island latitude"
+    # Must fall inside the Dutch mainland bounding box.
+    assert 3.0 < min(lons) and max(lons) < 7.3, lons
+    assert 50.7 < min(lats) and max(lats) < 53.6, lats
+
+
+def test_leefbaarometer_layer_uses_dimension_props_when_available() -> None:
+    from huisChecker.etl.sources.leefbaarometer import DIMENSION_KEYS
+
+    feature = _lb_feature_for("2316")
+    props = feature["properties"]
+    # Fixture ships dimension scores for 2316.
+    for key in DIMENSION_KEYS:
+        assert f"dim_{key}" in props, key
+        assert isinstance(props[f"dim_{key}"], (int, float))
+
+
+def test_leefbaarometer_layer_omits_dimensions_when_not_available() -> None:
+    from huisChecker.etl.sources.leefbaarometer import DIMENSION_KEYS
+
+    feature = _lb_feature_for("1011")
+    props = feature["properties"]
+    # Overall-only PC4 must not leak partial / synthetic dimension props.
+    for key in DIMENSION_KEYS:
+        assert f"dim_{key}" not in props, key

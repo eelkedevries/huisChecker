@@ -12,11 +12,12 @@ _PC4_CENTROIDS: dict[str, tuple[float, float]] = {
     # lon, lat
     "1011": (4.901, 52.372),
     "1012": (4.890, 52.376),
+    "2316": (4.503, 52.163),
     "3011": (4.479, 51.922),
     "3511": (5.117, 52.090),
 }
 
-_HALF_WIDTH = 0.006  # ~ a few hundred meters; enough to be visible at zoom 12
+_HALF_WIDTH = 0.010  # polygon visibly larger than the focus marker at zoom 14
 
 
 def pc4_polygon_coordinates(pc4: str) -> list[list[list[float]]]:

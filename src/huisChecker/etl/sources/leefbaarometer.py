@@ -3,6 +3,10 @@
 Produces:
   - data/curated/leefbaarometer_pc4.csv
   - data/curated/layers/leefbaarometer_pc4.geojson  (band-coloured stub)
+
+When the fixture carries dimension scores (the five official Leefbaarometer
+3.0 dimensions) they are passed through unchanged as extra CSV columns and
+geojson feature properties. No synthetic aggregation is produced.
 """
 
 from __future__ import annotations
@@ -18,12 +22,22 @@ from huisChecker.etl.geometry_stubs import pc4_polygon_feature
 from huisChecker.etl.io import read_json, write_csv, write_json
 from huisChecker.etl.manifest import SourceManifest, now_iso, write_manifest
 
+# Official Leefbaarometer 3.0 dimensions. Order matters for display.
+DIMENSION_KEYS: tuple[str, ...] = (
+    "woningvoorraad",
+    "fysieke_omgeving",
+    "voorzieningen",
+    "sociale_samenhang",
+    "overlast_en_onveiligheid",
+)
+
 
 @dataclass(frozen=True)
 class _LbNormalised:
     reference_period: str
     metrics: tuple[AreaMetricSnapshot, ...]
     bands: tuple[tuple[str, str], ...]  # (postcode4, band)
+    dimensions: dict[str, dict[str, Decimal]]  # pc4 -> {dim_key: value}
 
 
 class LeefbaarometerJob(ETLJob):
@@ -53,31 +67,37 @@ class LeefbaarometerJob(ETLJob):
             for row in raw["pc4_scores"]
         )
         bands = tuple((row["postcode4"], row["band"]) for row in raw["pc4_scores"])
-        return _LbNormalised(reference_period=period, metrics=metrics, bands=bands)
+        dimensions: dict[str, dict[str, Decimal]] = {}
+        for row in raw["pc4_scores"]:
+            dims = row.get("dimensions") or {}
+            if not dims:
+                continue
+            dimensions[row["postcode4"]] = {
+                k: Decimal(str(dims[k])) for k in DIMENSION_KEYS if k in dims
+            }
+        return _LbNormalised(
+            reference_period=period, metrics=metrics, bands=bands, dimensions=dimensions
+        )
 
     def load(self, n: _LbNormalised) -> ETLResult:
         curated = self.ctx.curated_root
         outputs: list = []
+        csv_columns = (
+            "postcode4",
+            "score",
+            "band",
+            "reference_period",
+            "source_dataset_key",
+            *DIMENSION_KEYS,
+        )
         outputs.append(
             write_csv(
                 curated / "leefbaarometer_pc4.csv",
                 [
-                    {
-                        "postcode4": m.geography_code,
-                        "score": m.value,
-                        "band": dict(n.bands).get(m.geography_code, ""),
-                        "reference_period": m.reference_period,
-                        "source_dataset_key": m.source_dataset_key,
-                    }
+                    _csv_row(m, n)
                     for m in n.metrics
                 ],
-                columns=(
-                    "postcode4",
-                    "score",
-                    "band",
-                    "reference_period",
-                    "source_dataset_key",
-                ),
+                columns=csv_columns,
             )
         )
         score_by_pc4 = {m.geography_code: m.value for m in n.metrics}
@@ -86,13 +106,7 @@ class LeefbaarometerJob(ETLJob):
             "features": [
                 pc4_polygon_feature(
                     pc4,
-                    {
-                        "postcode4": pc4,
-                        "band": band,
-                        "leefbaarometer_score": float(score_by_pc4[pc4])
-                        if pc4 in score_by_pc4
-                        else None,
-                    },
+                    _feature_properties(pc4, band, score_by_pc4, n.dimensions),
                 )
                 for pc4, band in n.bands
             ],
@@ -122,4 +136,36 @@ class LeefbaarometerJob(ETLJob):
         )
 
 
-__all__ = ["LeefbaarometerJob"]
+def _csv_row(m: AreaMetricSnapshot, n: _LbNormalised) -> dict[str, Any]:
+    row: dict[str, Any] = {
+        "postcode4": m.geography_code,
+        "score": m.value,
+        "band": dict(n.bands).get(m.geography_code, ""),
+        "reference_period": m.reference_period,
+        "source_dataset_key": m.source_dataset_key,
+    }
+    dims = n.dimensions.get(m.geography_code, {})
+    for key in DIMENSION_KEYS:
+        row[key] = dims.get(key, "")
+    return row
+
+
+def _feature_properties(
+    pc4: str,
+    band: str,
+    score_by_pc4: dict[str, Decimal],
+    dimensions: dict[str, dict[str, Decimal]],
+) -> dict[str, Any]:
+    props: dict[str, Any] = {
+        "postcode4": pc4,
+        "band": band,
+        "leefbaarometer_score": float(score_by_pc4[pc4]) if pc4 in score_by_pc4 else None,
+    }
+    dims = dimensions.get(pc4, {})
+    for key in DIMENSION_KEYS:
+        if key in dims:
+            props[f"dim_{key}"] = float(dims[key])
+    return props
+
+
+__all__ = ["DIMENSION_KEYS", "LeefbaarometerJob"]

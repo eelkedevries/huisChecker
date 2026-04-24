@@ -21,6 +21,7 @@ from huisChecker.etl.manifest import read_manifest
 from huisChecker.remote import bag as bag_adapter
 from huisChecker.remote import cbs as cbs_adapter
 from huisChecker.remote import klimaat as klimaat_adapter
+from huisChecker.etl.sources.leefbaarometer import DIMENSION_KEYS as LB_DIMENSION_KEYS
 from huisChecker.remote import leefbaarometer as lb_adapter
 from huisChecker.remote import politie as politie_adapter
 from huisChecker.scope import current_scope
@@ -50,6 +51,7 @@ class AddressPreview:
     population_density: str | None
     leefbaarometer_score: str | None
     leefbaarometer_band: str | None
+    leefbaarometer_dimensions: tuple[tuple[str, str, str], ...]
     flood_probability_class: str | None
     heat_stress_class: str | None
     road_noise_class: str | None
@@ -76,6 +78,35 @@ def _normalise_postcode4(value: str | None) -> str:
         return ""
     digits = "".join(ch for ch in value.strip() if ch.isdigit())
     return digits[:4]
+
+
+_LB_DIMENSION_LABELS: dict[str, str] = {
+    "woningvoorraad": "Woningvoorraad",
+    "fysieke_omgeving": "Fysieke omgeving",
+    "voorzieningen": "Voorzieningen",
+    "sociale_samenhang": "Sociale samenhang",
+    "overlast_en_onveiligheid": "Overlast en onveiligheid",
+}
+
+
+def _build_lb_dimensions(
+    payload: dict | None,
+) -> tuple[tuple[str, str, str], ...]:
+    if not payload:
+        return ()
+    raw = payload.get("dimensions") or {}
+    if not isinstance(raw, dict) or not raw:
+        return ()
+    out: list[tuple[str, str, str]] = []
+    for key in LB_DIMENSION_KEYS:
+        value = raw.get(key)
+        if value is None:
+            continue
+        text = str(value).strip()
+        if not text:
+            continue
+        out.append((key, _LB_DIMENSION_LABELS.get(key, key), text))
+    return tuple(out)
 
 
 def _or_none(value) -> str | None:
@@ -207,6 +238,7 @@ def build_preview(address_id: str, data_root: Path | None = None) -> AddressPrev
         sources["leefbaarometer"] = str(lb_payload.get("source", ""))
     lb_score = _or_none(lb_payload.get("score")) if lb_payload else None
     lb_band = _or_none(lb_payload.get("band")) if lb_payload else None
+    lb_dimensions = _build_lb_dimensions(lb_payload)
 
     politie_payload = politie_adapter.fetch_pc4(
         pc4_key, municipality_code=resolved.municipality_code, data_root=root
@@ -279,6 +311,7 @@ def build_preview(address_id: str, data_root: Path | None = None) -> AddressPrev
         population_density=density,
         leefbaarometer_score=lb_score,
         leefbaarometer_band=lb_band,
+        leefbaarometer_dimensions=lb_dimensions,
         flood_probability_class=flood_class,
         heat_stress_class=heat_class,
         road_noise_class=noise_class,

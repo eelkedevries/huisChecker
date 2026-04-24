@@ -352,21 +352,55 @@ def _liveability_section(preview: AddressPreview) -> ReportSection:
         band = _format_class(preview.leefbaarometer_band)
         findings.append(
             FindingRow(
-                label="Leefbaarometer-score",
+                label="Leefbaarometer-score (overall)",
                 value=preview.leefbaarometer_score,
                 unit=None,
                 comparison_label=band,
                 comparison_css=_benchmark_css(None),
                 comparison_detail=(
+                    f"Peiljaar {preview.leefbaarometer_reference_period}. "
                     "Bron-eigen klasse-indeling; niet hercombineren met andere indicatoren."
                 ),
-                caveat="Composite score van Leefbaarometer; getoond zoals gepubliceerd.",
+                caveat=(
+                    "Samengestelde score van Leefbaarometer op PC4-niveau; "
+                    "geen adresspecifieke uitspraak."
+                ),
             )
         )
+        if preview.leefbaarometer_dimensions:
+            for _key, label, value in preview.leefbaarometer_dimensions:
+                findings.append(
+                    FindingRow(
+                        label=f"Dimensie · {label}",
+                        value=value,
+                        unit=None,
+                        comparison_label="bron-eigen score",
+                        comparison_css=_benchmark_css(None),
+                        comparison_detail=(
+                            "Officiële Leefbaarometer 3.0-dimensie; "
+                            "getoond zoals gepubliceerd."
+                        ),
+                    )
+                )
+        else:
+            findings.append(
+                FindingRow(
+                    label="Leefbaarometer dimensies",
+                    value="alleen overall score beschikbaar",
+                    comparison_label="beperkte dekking",
+                    comparison_css=_benchmark_css(None),
+                    comparison_detail=(
+                        "Woningvoorraad, Fysieke omgeving, Voorzieningen, "
+                        "Sociale samenhang, Overlast en onveiligheid worden pas "
+                        "getoond als Leefbaarometer deze publiceert voor dit PC4."
+                    ),
+                )
+            )
 
     summary = (
         f"Leefbaarheid scoort als '{_format_class(preview.leefbaarometer_band)}' "
-        f"in het postcodegebied (Leefbaarometer)."
+        f"in het postcodegebied (Leefbaarometer, peiljaar "
+        f"{preview.leefbaarometer_reference_period})."
         if preview.leefbaarometer_band
         else "Geen Leefbaarometer-score beschikbaar voor dit gebied."
     )

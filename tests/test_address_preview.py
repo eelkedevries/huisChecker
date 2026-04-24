@@ -15,6 +15,7 @@ AMSTERDAM_NIEUWENDIJK = "0363200000123457"
 ROTTERDAM_COOLSINGEL = "0599200000123458"
 UTRECHT_OUDEGRACHT = "0344200000123459"
 LEIDEN_BREESTRAAT = "0546200000999999"
+LEIDEN_MARESINGEL = "0546200000293112"
 
 
 @pytest.fixture()
@@ -133,6 +134,40 @@ def test_preview_partial_for_address_outside_curated(data_root: Path) -> None:
     assert p.construction_year is None
     assert p.leefbaarometer_score is None
     assert p.missing_layers  # lists the gaps
+
+
+def test_preview_leefbaarometer_dimensions_present_for_pc4_2316(data_root: Path) -> None:
+    p = build_preview(LEIDEN_MARESINGEL, data_root=data_root)
+    assert p is not None
+    assert p.postcode4 == "2316"
+    # Overall stays primary.
+    assert p.leefbaarometer_score == "6.4"
+    assert p.leefbaarometer_band == "voldoende"
+    # Five official dimensions, in registry order, each with label + value.
+    keys = [key for key, _label, _value in p.leefbaarometer_dimensions]
+    assert keys == [
+        "woningvoorraad",
+        "fysieke_omgeving",
+        "voorzieningen",
+        "sociale_samenhang",
+        "overlast_en_onveiligheid",
+    ]
+    labels = {label for _key, label, _value in p.leefbaarometer_dimensions}
+    assert labels == {
+        "Woningvoorraad",
+        "Fysieke omgeving",
+        "Voorzieningen",
+        "Sociale samenhang",
+        "Overlast en onveiligheid",
+    }
+
+
+def test_preview_leefbaarometer_dimensions_empty_when_only_overall(data_root: Path) -> None:
+    # PC4 1011 fixture ships only overall score + band, no dimension values.
+    p = build_preview(AMSTERDAM_DAMRAK, data_root=data_root)
+    assert p is not None
+    assert p.leefbaarometer_score == "5.8"
+    assert p.leefbaarometer_dimensions == ()
 
 
 def test_preview_missing_curated_still_resolves_partial(tmp_path: Path) -> None:
