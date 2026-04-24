@@ -18,10 +18,10 @@ from pathlib import Path
 from huisChecker.address.search import resolve_address
 from huisChecker.etl.io import read_csv
 from huisChecker.etl.manifest import read_manifest
+from huisChecker.etl.sources.leefbaarometer import DIMENSION_KEYS as LB_DIMENSION_KEYS
 from huisChecker.remote import bag as bag_adapter
 from huisChecker.remote import cbs as cbs_adapter
 from huisChecker.remote import klimaat as klimaat_adapter
-from huisChecker.etl.sources.leefbaarometer import DIMENSION_KEYS as LB_DIMENSION_KEYS
 from huisChecker.remote import leefbaarometer as lb_adapter
 from huisChecker.remote import politie as politie_adapter
 from huisChecker.scope import current_scope

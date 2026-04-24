@@ -18,7 +18,7 @@ from typing import Any
 
 from huisChecker.contracts import AreaMetricSnapshot, GeographyLevel
 from huisChecker.etl.base import ETLJob, ETLResult, SourceMode
-from huisChecker.etl.geometry_stubs import pc4_polygon_feature
+from huisChecker.etl.geometry_stubs import pc4_feature
 from huisChecker.etl.io import read_json, write_csv, write_json
 from huisChecker.etl.manifest import SourceManifest, now_iso, write_manifest
 
@@ -103,10 +103,13 @@ class LeefbaarometerJob(ETLJob):
         score_by_pc4 = {m.geography_code: m.value for m in n.metrics}
         layer = {
             "type": "FeatureCollection",
+            "reference_period": n.reference_period,
             "features": [
-                pc4_polygon_feature(
+                pc4_feature(
                     pc4,
-                    _feature_properties(pc4, band, score_by_pc4, n.dimensions),
+                    _feature_properties(
+                        pc4, band, score_by_pc4, n.dimensions, n.reference_period
+                    ),
                 )
                 for pc4, band in n.bands
             ],
@@ -155,11 +158,13 @@ def _feature_properties(
     band: str,
     score_by_pc4: dict[str, Decimal],
     dimensions: dict[str, dict[str, Decimal]],
+    reference_period: str,
 ) -> dict[str, Any]:
     props: dict[str, Any] = {
         "postcode4": pc4,
         "band": band,
         "leefbaarometer_score": float(score_by_pc4[pc4]) if pc4 in score_by_pc4 else None,
+        "reference_period": reference_period,
     }
     dims = dimensions.get(pc4, {})
     for key in DIMENSION_KEYS:

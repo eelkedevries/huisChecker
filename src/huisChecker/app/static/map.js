@@ -30,24 +30,35 @@
     return marker;
   }
 
-  function featureStyle(props, fallbackColor, opacity) {
+  function featureStyle(props, fallbackColor, opacity, selectedPc4) {
     var color = (props && props._color) || fallbackColor || "#334155";
+    var isSelected =
+      selectedPc4 && props && String(props.postcode4 || "") === selectedPc4;
     return {
-      color: "#0f172a",
-      weight: 1.5,
+      color: isSelected ? "#0f172a" : "#475569",
+      weight: isSelected ? 3.5 : 1.2,
+      dashArray: isSelected ? null : "2,3",
       fillColor: color,
       fillOpacity: Math.max(opacity, 0.35),
-      opacity: 0.9,
+      opacity: isSelected ? 1.0 : 0.75,
     };
   }
 
-  function bindFeatureTooltip(feature, layerObj, meta) {
+  function bindFeatureTooltip(feature, layerObj, meta, selectedPc4) {
     var props = feature.properties || {};
     var parts = [];
     if (meta.label) parts.push("<strong>" + meta.label + "</strong>");
     if (props._label) parts.push(escapeHtml(props._label));
     else if (meta.legend && props[meta.key]) parts.push(escapeHtml(String(props[meta.key])));
-    if (props.postcode4) parts.push("PC4 " + escapeHtml(String(props.postcode4)));
+    if (props.postcode4) {
+      var pc4 = String(props.postcode4);
+      var label = "PC4 " + escapeHtml(pc4);
+      if (selectedPc4 && pc4 === selectedPc4) label += " (geselecteerd)";
+      parts.push(label);
+    }
+    if (props.reference_period) {
+      parts.push("peiljaar " + escapeHtml(String(props.reference_period)));
+    }
     if (parts.length) layerObj.bindTooltip(parts.join("<br>"), { sticky: true });
   }
 
@@ -227,7 +238,7 @@
           updateCoverageFromGeoJSON(key, gj);
           var lyr = L.geoJSON(gj, {
             style: function (feature) {
-              return featureStyle(feature.properties, null, state.opacity);
+              return featureStyle(feature.properties, null, state.opacity, focusPc4);
             },
             pointToLayer: function (feature, latlng) {
               return L.circleMarker(latlng, {
@@ -239,7 +250,7 @@
               });
             },
             onEachFeature: function (feature, l) {
-              bindFeatureTooltip(feature, l, state.meta);
+              bindFeatureTooltip(feature, l, state.meta, focusPc4);
             },
           });
           lyr.addTo(map);
@@ -329,7 +340,7 @@
         return;
       }
       state.leafletLayer.setStyle(function (feature) {
-        return featureStyle(feature.properties, null, value);
+        return featureStyle(feature.properties, null, value, focusPc4);
       });
     });
 

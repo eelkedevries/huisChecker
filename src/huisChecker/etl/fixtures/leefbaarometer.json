@@ -12,6 +12,10 @@
     {"postcode4": "1012", "score": 6.1, "band": "voldoende"},
     {"postcode4": "3011", "score": 5.4, "band": "matig"},
     {"postcode4": "3511", "score": 6.7, "band": "goed"},
+    {"postcode4": "2312", "score": 6.2, "band": "voldoende"},
+    {"postcode4": "2313", "score": 6.0, "band": "voldoende"},
+    {"postcode4": "2314", "score": 5.7, "band": "matig"},
+    {"postcode4": "2315", "score": 6.5, "band": "goed"},
     {
       "postcode4": "2316",
       "score": 6.4,
@@ -23,6 +27,10 @@
         "sociale_samenhang": 6.1,
         "overlast_en_onveiligheid": 6.0
       }
-    }
+    },
+    {"postcode4": "2317", "score": 6.8, "band": "goed"},
+    {"postcode4": "2318", "score": 6.6, "band": "goed"},
+    {"postcode4": "2321", "score": 5.5, "band": "matig"},
+    {"postcode4": "2322", "score": 5.8, "band": "voldoende"}
   ]
 }

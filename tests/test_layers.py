@@ -250,3 +250,121 @@ def test_leefbaarometer_layer_omits_dimensions_when_not_available() -> None:
     # Overall-only PC4 must not leak partial / synthetic dimension props.
     for key in DIMENSION_KEYS:
         assert f"dim_{key}" not in props, key
+
+
+# --- Authoritative geometry + comparison + selection ------------------------
+
+
+def _ring_is_axis_aligned_rectangle(ring: list[list[float]]) -> bool:
+    """A bbox placeholder has 4 unique vertices on 2 lons and 2 lats."""
+    pts = ring[:-1] if len(ring) > 1 and ring[0] == ring[-1] else ring
+    if len(pts) != 4:
+        return False
+    lons = {round(p[0], 6) for p in pts}
+    lats = {round(p[1], 6) for p in pts}
+    return len(lons) == 2 and len(lats) == 2
+
+
+def test_leefbaarometer_geometry_is_not_axis_aligned_rectangle() -> None:
+    """Authoritative PC4 geometry, not the old bbox placeholder."""
+    data = load_styled_geojson("leefbaarometer_pc4")
+    assert data is not None
+    for feature in data["features"]:
+        geom = feature["geometry"]
+        if geom["type"] != "Polygon":
+            continue
+        ring = geom["coordinates"][0]
+        assert not _ring_is_axis_aligned_rectangle(ring), (
+            f"PC4 {feature['properties'].get('postcode4')} still renders as a "
+            f"bbox rectangle: {ring}"
+        )
+        # Real boundaries have many vertices; bbox stub had exactly 5.
+        assert len(ring) >= 8, (
+            f"PC4 {feature['properties'].get('postcode4')} has only "
+            f"{len(ring)} ring points — likely a placeholder."
+        )
+
+
+def test_leefbaarometer_layer_covers_multiple_pc4_in_leiden_extent() -> None:
+    """Map compares 2316 against neighbouring PC4 polygons in the extent."""
+    data = load_styled_geojson("leefbaarometer_pc4")
+    assert data is not None
+    pc4s = {
+        (f.get("properties") or {}).get("postcode4") for f in data["features"]
+    }
+    # Selected PC4 plus at least three Leiden-area neighbours for comparison.
+    leiden_extent = {"2312", "2313", "2314", "2315", "2316", "2317", "2318"}
+    in_extent = pc4s & leiden_extent
+    assert "2316" in in_extent
+    assert len(in_extent) >= 4, in_extent
+
+
+def test_leefbaarometer_layer_carries_reference_period() -> None:
+    data = load_styled_geojson("leefbaarometer_pc4")
+    assert data is not None
+    feature = _lb_feature_for("2316")
+    assert feature["properties"].get("reference_period") == "2022"
+
+
+def test_every_band_in_data_resolves_to_a_legend_color() -> None:
+    """Legend-to-style consistency across all features."""
+    data = load_styled_geojson("leefbaarometer_pc4")
+    assert data is not None
+    for feature in data["features"]:
+        props = feature.get("properties") or {}
+        if not props.get("band"):
+            continue
+        color = props.get("_color", "")
+        assert color.startswith("#"), (props.get("postcode4"), props.get("band"))
+
+
+def test_leefbaarometer_layer_label_signals_overall_not_composite() -> None:
+    layer = layer_registry.get("leefbaarometer_pc4")
+    assert "overall" in layer.label.lower()
+    caveat = layer.caveat.lower()
+    # Caveat must discourage synthesis into a custom huisChecker score.
+    assert "huischecker" in caveat or "hercombineren" in caveat
+
+
+def test_dimension_overlays_are_not_registered_when_data_path_is_not_implemented() -> None:
+    """Dimension overlays stay unregistered until multi-PC4 dim data exists."""
+    keys = {layer.key for layer in layer_registry.all()}
+    for dim in (
+        "leefbaarometer_dim_woningvoorraad",
+        "leefbaarometer_dim_fysieke_omgeving",
+        "leefbaarometer_dim_voorzieningen",
+        "leefbaarometer_dim_sociale_samenhang",
+        "leefbaarometer_dim_overlast_en_onveiligheid",
+    ):
+        assert dim not in keys, (
+            f"Dimension overlay {dim} is registered but the MVP data path "
+            f"only carries dimensions for a single PC4 — no comparison possible."
+        )
+
+
+def test_dimension_property_names_use_official_keys() -> None:
+    """Feature properties follow the five official Leefbaarometer 3.0 keys."""
+    from huisChecker.etl.sources.leefbaarometer import DIMENSION_KEYS
+
+    assert DIMENSION_KEYS == (
+        "woningvoorraad",
+        "fysieke_omgeving",
+        "voorzieningen",
+        "sociale_samenhang",
+        "overlast_en_onveiligheid",
+    )
+    feature = _lb_feature_for("2316")
+    for key in DIMENSION_KEYS:
+        assert f"dim_{key}" in feature["properties"]
+
+
+def test_no_composite_huischecker_score_is_emitted_in_layer() -> None:
+    data = load_styled_geojson("leefbaarometer_pc4")
+    assert data is not None
+    forbidden_substrings = ("huischecker_score", "composite", "weighted", "synthetic")
+    for feature in data["features"]:
+        props = feature.get("properties") or {}
+        for prop in props:
+            low = prop.lower()
+            for bad in forbidden_substrings:
+                assert bad not in low, f"unexpected composite-like property: {prop}"

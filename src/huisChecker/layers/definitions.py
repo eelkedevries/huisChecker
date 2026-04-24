@@ -145,9 +145,17 @@ layer_registry = LayerRegistry()
 
 layer_registry.register_many(
     [
+        # Overall Leefbaarometer overlay. Compares PC4 areas in the current
+        # map extent using source-native bands. Dimension-level overlays
+        # (Woningvoorraad, Fysieke omgeving, Voorzieningen, Sociale
+        # samenhang, Overlast en onveiligheid) are intentionally NOT
+        # exposed here: the MVP data path only carries dimension scores
+        # for a single PC4, so a dimension overlay would offer no
+        # cross-area comparison. The five dimensions are shown per-area
+        # in the preview + report; no synthetic recomposition.
         LayerDefinition(
             key="leefbaarometer_pc4",
-            label="Leefbaarometer (PC4)",
+            label="Leefbaarometer (PC4, overall)",
             source_dataset_key="leefbaarometer",
             geometry_type=GeometryType.POLYGON,
             supported_geographies=(GeographyLevel.POSTCODE4,),
@@ -165,7 +173,12 @@ layer_registry.register_many(
                 ),
             ),
             default_visible=True,
-            caveat="Source-native bands; do not reinterpret numerically.",
+            caveat=(
+                "Bron-eigen klassen op PC4-niveau. Overlay toont "
+                "vergelijkbare buur-PC4's in de huidige kaartuitsnede; "
+                "geselecteerde PC4 is benadrukt. Niet hercombineren of "
+                "herlabelen als huisChecker-score."
+            ),
         ),
         LayerDefinition(
             key="cbs_population_density_pc4",

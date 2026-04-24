@@ -102,6 +102,33 @@ when the mode is active.
 - `data/curated/` — minimal local subset. Only in-scope rows are needed
   to run the app; the ETL smoke path still generates the demo rows for
   unit tests.
+- `src/huisChecker/etl/fixtures/pc4_boundaries.geojson` —
+  authoritative irregular PC4 polygons (simplified from PDOK / CBS)
+  bundled with the repo; layer-producing ETL jobs join their values
+  against this file instead of the earlier bbox stub.
+
+## Leefbaarometer overlay
+
+- **Authoritative geometry.** PC4 polygons come from
+  `pc4_boundaries.geojson`; no more axis-aligned rectangles.
+- **Area comparison.** The overlay paints every PC4 in the current map
+  extent with its source-native Leefbaarometer band, so neighbouring
+  areas are visible alongside the selected one.
+- **Selection highlight.** The PC4 that matches
+  `data-focus-postcode4` is drawn with a stronger stroke; its
+  neighbours keep a lighter, dashed outline.
+- **Overall score is primary.** The report + preview cards lead with
+  the overall Leefbaarometer score/class and peiljaar. The five
+  official dimensions (Woningvoorraad, Fysieke omgeving,
+  Voorzieningen, Sociale samenhang, Overlast en onveiligheid) are
+  shown as a compact block when the source publishes them for the
+  selected PC4.
+- **No composite.** huisChecker does not synthesise the dimensions
+  into a custom score. Dimension overlays are intentionally *not*
+  registered: the MVP data path only carries dimension scores for one
+  PC4, so a dimension overlay would offer no comparison — expose it
+  only once Leefbaarometer publishes the dimensions per PC4 across the
+  active scope.
 
 ## Expanding scope later
 
