@@ -22,6 +22,12 @@ from huisChecker.layers.definitions import (
 )
 from huisChecker.layers.styling import feature_color, feature_label
 
+# Grey fill for PC4 polygons that have authoritative geometry but no
+# value for the active layer. Kept in one place so both server-side
+# enrichment and client-side defaults stay in sync.
+NO_DATA_COLOR = "#d1d5db"
+NO_DATA_LABEL = "geen data"
+
 
 def _default_data_root() -> Path:
     return Path(__file__).resolve().parents[3] / "data"
@@ -80,18 +86,39 @@ def load_styled_geojson(key: str, data_root: Path | None = None) -> dict[str, An
 
 
 def enrich_geojson(layer: LayerDefinition, geojson: dict[str, Any]) -> dict[str, Any]:
-    """Return a copy of `geojson` with `_color` and `_label` added per feature."""
+    """Return a copy of `geojson` with `_color` and `_label` added per feature.
+
+    Polygon features that carry `postcode4` but no resolvable legend
+    value fall through to an explicit no-data style, so the overlay
+    renders as a complete choropleth rather than dropping those cells.
+    """
     enriched = deepcopy(geojson)
     enriched.setdefault("type", "FeatureCollection")
     for feature in enriched.get("features", []):
         props = feature.setdefault("properties", {})
         color = feature_color(layer, props)
-        if color is not None:
-            props["_color"] = color
         label = feature_label(layer, props)
-        if label is not None:
-            props["_label"] = label
+        if color is None and _is_pc4_polygon(layer, feature, props):
+            props["_color"] = NO_DATA_COLOR
+            props["_label"] = NO_DATA_LABEL
+            props["_no_data"] = True
+        else:
+            if color is not None:
+                props["_color"] = color
+            if label is not None:
+                props["_label"] = label
     return enriched
+
+
+def _is_pc4_polygon(
+    layer: LayerDefinition, feature: dict[str, Any], props: dict[str, Any]
+) -> bool:
+    if layer.legend is None:
+        return False
+    if not props.get("postcode4"):
+        return False
+    geom_type = (feature.get("geometry") or {}).get("type")
+    return geom_type in {"Polygon", "MultiPolygon"}
 
 
 def _metadata_dict(layer: LayerDefinition) -> dict[str, Any]:
@@ -145,6 +172,8 @@ def _legend_dict(legend: LegendConfig | None) -> dict[str, Any] | None:
 
 
 __all__ = [
+    "NO_DATA_COLOR",
+    "NO_DATA_LABEL",
     "available_keys",
     "enrich_geojson",
     "layer_metadata",

@@ -18,7 +18,7 @@ from typing import Any
 
 from huisChecker.contracts import AreaMetricSnapshot, GeographyLevel
 from huisChecker.etl.base import ETLJob, ETLResult, SourceMode
-from huisChecker.etl.geometry_stubs import pc4_feature
+from huisChecker.etl.geometry_stubs import available_pc4s, pc4_feature
 from huisChecker.etl.io import read_json, write_csv, write_json
 from huisChecker.etl.manifest import SourceManifest, now_iso, write_manifest
 
@@ -101,6 +101,12 @@ class LeefbaarometerJob(ETLJob):
             )
         )
         score_by_pc4 = {m.geography_code: m.value for m in n.metrics}
+        band_by_pc4 = dict(n.bands)
+        # Emit one feature per PC4 in the authoritative boundary table.
+        # PC4s without a Leefbaarometer score render as no-data cells,
+        # so the overlay stays a complete choropleth rather than a set
+        # of island polygons.
+        rendered_pc4s = sorted(set(available_pc4s()) | set(band_by_pc4))
         layer = {
             "type": "FeatureCollection",
             "reference_period": n.reference_period,
@@ -108,10 +114,14 @@ class LeefbaarometerJob(ETLJob):
                 pc4_feature(
                     pc4,
                     _feature_properties(
-                        pc4, band, score_by_pc4, n.dimensions, n.reference_period
+                        pc4,
+                        band_by_pc4.get(pc4),
+                        score_by_pc4,
+                        n.dimensions,
+                        n.reference_period,
                     ),
                 )
-                for pc4, band in n.bands
+                for pc4 in rendered_pc4s
             ],
         }
         outputs.append(write_json(curated / "layers" / "leefbaarometer_pc4.geojson", layer))
@@ -155,17 +165,24 @@ def _csv_row(m: AreaMetricSnapshot, n: _LbNormalised) -> dict[str, Any]:
 
 def _feature_properties(
     pc4: str,
-    band: str,
+    band: str | None,
     score_by_pc4: dict[str, Decimal],
     dimensions: dict[str, dict[str, Decimal]],
     reference_period: str,
 ) -> dict[str, Any]:
     props: dict[str, Any] = {
         "postcode4": pc4,
-        "band": band,
-        "leefbaarometer_score": float(score_by_pc4[pc4]) if pc4 in score_by_pc4 else None,
         "reference_period": reference_period,
     }
+    if band:
+        props["band"] = band
+    else:
+        # PC4 has an authoritative polygon but no Leefbaarometer score.
+        # Mark it so the map renders a no-data cell instead of omitting
+        # the area entirely.
+        props["no_data"] = True
+    if pc4 in score_by_pc4:
+        props["leefbaarometer_score"] = float(score_by_pc4[pc4])
     dims = dimensions.get(pc4, {})
     for key in DIMENSION_KEYS:
         if key in dims:

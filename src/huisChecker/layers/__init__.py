@@ -12,6 +12,8 @@ from huisChecker.layers.definitions import (
     layer_registry,
 )
 from huisChecker.layers.service import (
+    NO_DATA_COLOR,
+    NO_DATA_LABEL,
     available_keys,
     enrich_geojson,
     layer_metadata,
@@ -27,6 +29,8 @@ __all__ = [
     "LegendConfig",
     "LegendStop",
     "LegendType",
+    "NO_DATA_COLOR",
+    "NO_DATA_LABEL",
     "OpacityConfig",
     "RemoteTileConfig",
     "available_keys",

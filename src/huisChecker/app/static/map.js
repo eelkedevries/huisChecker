@@ -30,17 +30,34 @@
     return marker;
   }
 
-  function featureStyle(props, fallbackColor, opacity, selectedPc4) {
-    var color = (props && props._color) || fallbackColor || "#334155";
-    var isSelected =
-      selectedPc4 && props && String(props.postcode4 || "") === selectedPc4;
+  var NO_DATA_COLOR = "#d1d5db";
+
+  function featureStyle(props, fallbackColor, opacity) {
+    // Base choropleth: one uniform stroke for every feature so the
+    // selected PC4 is not emphasised here. The highlight layer renders
+    // a separate outline-only overlay for the selected cell.
+    var isNoData = !!(props && props._no_data);
+    var color =
+      (props && props._color) ||
+      (isNoData ? NO_DATA_COLOR : fallbackColor || "#334155");
     return {
-      color: isSelected ? "#0f172a" : "#475569",
-      weight: isSelected ? 3.5 : 1.2,
-      dashArray: isSelected ? null : "2,3",
+      color: "#475569",
+      weight: 1.0,
+      dashArray: isNoData ? "2,3" : null,
       fillColor: color,
-      fillOpacity: Math.max(opacity, 0.35),
-      opacity: isSelected ? 1.0 : 0.75,
+      fillOpacity: isNoData ? Math.min(opacity, 0.35) : Math.max(opacity, 0.35),
+      opacity: 0.75,
+    };
+  }
+
+  function highlightStyle() {
+    return {
+      color: "#0f172a",
+      weight: 3.5,
+      opacity: 1.0,
+      fill: false,
+      fillOpacity: 0,
+      interactive: false,
     };
   }
 
@@ -201,6 +218,7 @@
       if (!state) return Promise.resolve(null);
       if (state.leafletLayer) {
         state.leafletLayer.addTo(map);
+        if (state.highlightLayer) state.highlightLayer.addTo(map);
         return Promise.resolve(state.leafletLayer);
       }
       if (state.meta && state.meta.remote && state.meta.remote.tile_url) {
@@ -236,9 +254,9 @@
             return null;
           }
           updateCoverageFromGeoJSON(key, gj);
-          var lyr = L.geoJSON(gj, {
+          var base = L.geoJSON(gj, {
             style: function (feature) {
-              return featureStyle(feature.properties, null, state.opacity, focusPc4);
+              return featureStyle(feature.properties, null, state.opacity);
             },
             pointToLayer: function (feature, latlng) {
               return L.circleMarker(latlng, {
@@ -253,15 +271,42 @@
               bindFeatureTooltip(feature, l, state.meta, focusPc4);
             },
           });
-          lyr.addTo(map);
-          state.leafletLayer = lyr;
-          return lyr;
+          base.addTo(map);
+          state.leafletLayer = base;
+          // Selected-PC4 highlight: rendered as a separate outline-only
+          // overlay on top of the base fill, so the base layer stays a
+          // clean choropleth with one feature per PC4.
+          var selected = selectedFeature(gj, focusPc4);
+          if (selected) {
+            var hl = L.geoJSON(selected, { style: highlightStyle });
+            hl.addTo(map);
+            state.highlightLayer = hl;
+          }
+          return base;
         });
+    }
+
+    function selectedFeature(gj, pc4) {
+      if (!pc4) return null;
+      var features = (gj && gj.features) || [];
+      for (var i = 0; i < features.length; i++) {
+        var f = features[i];
+        var p = (f && f.properties) || {};
+        if (String(p.postcode4 || "") === pc4) {
+          var geom = f.geometry;
+          if (!geom) return null;
+          if (geom.type !== "Polygon" && geom.type !== "MultiPolygon") return null;
+          return f;
+        }
+      }
+      return null;
     }
 
     function removeLayer(key) {
       var state = layerState[key];
-      if (state && state.leafletLayer) map.removeLayer(state.leafletLayer);
+      if (!state) return;
+      if (state.leafletLayer) map.removeLayer(state.leafletLayer);
+      if (state.highlightLayer) map.removeLayer(state.highlightLayer);
     }
 
     function setCoverageNote(key, text) {
@@ -340,7 +385,7 @@
         return;
       }
       state.leafletLayer.setStyle(function (feature) {
-        return featureStyle(feature.properties, null, value, focusPc4);
+        return featureStyle(feature.properties, null, value);
       });
     });
 

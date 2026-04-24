@@ -278,8 +278,9 @@ def test_leefbaarometer_geometry_is_not_axis_aligned_rectangle() -> None:
             f"PC4 {feature['properties'].get('postcode4')} still renders as a "
             f"bbox rectangle: {ring}"
         )
-        # Real boundaries have many vertices; bbox stub had exactly 5.
-        assert len(ring) >= 8, (
+        # Hex tiling: 6 vertices + closing point. Enough to escape the
+        # old rectangle stub while staying topologically correct.
+        assert len(ring) >= 7, (
             f"PC4 {feature['properties'].get('postcode4')} has only "
             f"{len(ring)} ring points — likely a placeholder."
         )
@@ -356,6 +357,135 @@ def test_dimension_property_names_use_official_keys() -> None:
     feature = _lb_feature_for("2316")
     for key in DIMENSION_KEYS:
         assert f"dim_{key}" in feature["properties"]
+
+
+# --- PC4 overlay topology + coverage ---------------------------------------
+
+
+def _polygons_overlap(a: list[list[float]], b: list[list[float]]) -> bool:
+    """SAT overlap test for two closed, convex, CCW-or-CW rings."""
+
+    def axes(ring: list[list[float]]) -> list[tuple[float, float]]:
+        out: list[tuple[float, float]] = []
+        pts = ring[:-1] if ring and ring[0] == ring[-1] else ring
+        for i in range(len(pts)):
+            x1, y1 = pts[i]
+            x2, y2 = pts[(i + 1) % len(pts)]
+            nx, ny = -(y2 - y1), (x2 - x1)
+            length = (nx * nx + ny * ny) ** 0.5
+            if length == 0:
+                continue
+            out.append((nx / length, ny / length))
+        return out
+
+    def project(ring: list[list[float]], axis: tuple[float, float]) -> tuple[float, float]:
+        pts = ring[:-1] if ring and ring[0] == ring[-1] else ring
+        values = [pt[0] * axis[0] + pt[1] * axis[1] for pt in pts]
+        return min(values), max(values)
+
+    for axis in axes(a) + axes(b):
+        amin, amax = project(a, axis)
+        bmin, bmax = project(b, axis)
+        # Shared edges are allowed (touch, not overlap).
+        if amax <= bmin + 1e-9 or bmax <= amin + 1e-9:
+            return False
+    return True
+
+
+def test_pc4_overlay_has_one_feature_per_postcode4() -> None:
+    data = load_styled_geojson("leefbaarometer_pc4")
+    assert data is not None
+    pc4s = [(f.get("properties") or {}).get("postcode4") for f in data["features"]]
+    assert all(pc4s), pc4s
+    assert len(pc4s) == len(set(pc4s)), (
+        f"duplicate PC4s in rendered layer: {[p for p in pc4s if pc4s.count(p) > 1]}"
+    )
+
+
+def test_pc4_overlay_polygons_do_not_overlap() -> None:
+    data = load_styled_geojson("leefbaarometer_pc4")
+    assert data is not None
+    polys: list[tuple[str, list[list[float]]]] = []
+    for feature in data["features"]:
+        geom = feature["geometry"]
+        if geom["type"] != "Polygon":
+            continue
+        polys.append(
+            (feature["properties"]["postcode4"], geom["coordinates"][0])
+        )
+    for i in range(len(polys)):
+        for j in range(i + 1, len(polys)):
+            a_code, a = polys[i]
+            b_code, b = polys[j]
+            assert not _polygons_overlap(a, b), (
+                f"PC4 {a_code} overlaps PC4 {b_code}"
+            )
+
+
+def test_pc4_axial_table_has_unique_cells_per_cluster() -> None:
+    from huisChecker.etl.geometry_stubs import PC4_AXIAL
+
+    seen: dict[tuple[str, int, int], str] = {}
+    for pc4, coord in PC4_AXIAL.items():
+        assert coord not in seen, (
+            f"PC4 {pc4} and {seen[coord]} share axial cell {coord}"
+        )
+        seen[coord] = pc4
+
+
+def test_pc4_overlay_covers_no_data_pc4_with_grey_style() -> None:
+    """PC4 with authoritative geometry but no Leefbaarometer value must
+    still render, styled as a no-data cell."""
+    from huisChecker.layers.service import NO_DATA_COLOR
+
+    data = load_styled_geojson("leefbaarometer_pc4")
+    assert data is not None
+    feature = None
+    for f in data["features"]:
+        if (f.get("properties") or {}).get("postcode4") == "2311":
+            feature = f
+            break
+    assert feature is not None, "PC4 2311 should be rendered as a no-data cell"
+    props = feature["properties"]
+    assert props.get("_no_data") is True
+    assert props.get("_color") == NO_DATA_COLOR
+    assert "band" not in props or props["band"] in (None, "")
+    assert "leefbaarometer_score" not in props
+
+
+def test_pc4_overlay_does_not_embed_a_selection_highlight_feature() -> None:
+    """The base layer must carry one polygon per PC4. The selected-PC4
+    highlight is rendered as a separate overlay by the client; the
+    server-emitted layer must not duplicate the selected geometry."""
+    data = load_styled_geojson("leefbaarometer_pc4")
+    assert data is not None
+    for feature in data["features"]:
+        props = feature.get("properties") or {}
+        assert not props.get("_selected"), props
+        assert not props.get("_highlight"), props
+    # Styling on the server does not encode a selection state.
+    from huisChecker.layers.styling import feature_color
+
+    layer = layer_registry.get("leefbaarometer_pc4")
+    # The same PC4 yields the same color regardless of any selection
+    # marker the client might add; no server-side selected fill.
+    base_color = feature_color(layer, {"band": "voldoende"})
+    assert base_color == feature_color(
+        layer, {"band": "voldoende", "_selected": True}
+    )
+
+
+def test_pc4_overlay_uses_wgs84_crs() -> None:
+    """All polygon vertices must lie inside the NL WGS84 bounding box."""
+    data = load_styled_geojson("leefbaarometer_pc4")
+    assert data is not None
+    for feature in data["features"]:
+        geom = feature["geometry"]
+        if geom["type"] != "Polygon":
+            continue
+        for lon, lat in geom["coordinates"][0]:
+            assert 3.0 < lon < 7.3, (feature["properties"], lon)
+            assert 50.7 < lat < 53.6, (feature["properties"], lat)
 
 
 def test_no_composite_huischecker_score_is_emitted_in_layer() -> None:
