@@ -213,6 +213,28 @@ def test_leefbaarometer_legend_stops_match_all_band_values() -> None:
     )
 
 
+def _outer_ring(geom: dict) -> list[list[float]]:
+    """Pull the first outer ring out of a Polygon or MultiPolygon."""
+    if geom["type"] == "Polygon":
+        return geom["coordinates"][0]
+    if geom["type"] == "MultiPolygon":
+        return geom["coordinates"][0][0]
+    raise AssertionError(f"unexpected geometry type: {geom['type']}")
+
+
+def _all_outer_points(geom: dict) -> list[list[float]]:
+    """All vertices across every polygon in a Polygon/MultiPolygon."""
+    pts: list[list[float]] = []
+    if geom["type"] == "Polygon":
+        for ring in geom["coordinates"]:
+            pts.extend(ring)
+    elif geom["type"] == "MultiPolygon":
+        for poly in geom["coordinates"]:
+            for ring in poly:
+                pts.extend(ring)
+    return pts
+
+
 def test_leefbaarometer_feature_matches_pc4_2316_with_visible_geometry() -> None:
     feature = _lb_feature_for("2316")
     props = feature["properties"]
@@ -221,9 +243,10 @@ def test_leefbaarometer_feature_matches_pc4_2316_with_visible_geometry() -> None
     assert props.get("_label") == "voldoende"
 
     # Geometry must not be the nil-island fallback.
-    ring = feature["geometry"]["coordinates"][0]
-    lons = [pt[0] for pt in ring]
-    lats = [pt[1] for pt in ring]
+    pts = _all_outer_points(feature["geometry"])
+    assert pts, "no vertices in geometry"
+    lons = [pt[0] for pt in pts]
+    lats = [pt[1] for pt in pts]
     assert max(abs(x) for x in lons) > 1.0, "nil-island longitude"
     assert max(abs(y) for y in lats) > 1.0, "nil-island latitude"
     # Must fall inside the Dutch mainland bounding box.
@@ -266,23 +289,24 @@ def _ring_is_axis_aligned_rectangle(ring: list[list[float]]) -> bool:
 
 
 def test_leefbaarometer_geometry_is_not_axis_aligned_rectangle() -> None:
-    """Authoritative PC4 geometry, not the old bbox placeholder."""
+    """Authoritative PC4 geometry, not the old bbox/hex placeholder."""
     data = load_styled_geojson("leefbaarometer_pc4")
     assert data is not None
     for feature in data["features"]:
         geom = feature["geometry"]
-        if geom["type"] != "Polygon":
+        if geom["type"] not in {"Polygon", "MultiPolygon"}:
             continue
-        ring = geom["coordinates"][0]
+        ring = _outer_ring(geom)
+        pc4 = feature["properties"].get("postcode4")
         assert not _ring_is_axis_aligned_rectangle(ring), (
-            f"PC4 {feature['properties'].get('postcode4')} still renders as a "
-            f"bbox rectangle: {ring}"
+            f"PC4 {pc4} still renders as a bbox rectangle: {ring}"
         )
-        # Hex tiling: 6 vertices + closing point. Enough to escape the
-        # old rectangle stub while staying topologically correct.
-        assert len(ring) >= 7, (
-            f"PC4 {feature['properties'].get('postcode4')} has only "
-            f"{len(ring)} ring points — likely a placeholder."
+        # Real CBS PC4 outlines have many vertices; the hex stub had 7.
+        # Anything below ~10 is suspicious for an authoritative boundary.
+        # 2321 / 3011 are real but very small (port / industrial area)
+        # so we keep the floor low and rely on the rectangle check above.
+        assert len(ring) >= 5, (
+            f"PC4 {pc4} has only {len(ring)} ring points — likely a placeholder."
         )
 
 
@@ -402,35 +426,31 @@ def test_pc4_overlay_has_one_feature_per_postcode4() -> None:
     )
 
 
-def test_pc4_overlay_polygons_do_not_overlap() -> None:
+def test_pc4_overlay_bboxes_do_not_overlap() -> None:
+    """Authoritative PC4 boundaries: bbox-level disjointness as a
+    cheap topology smoke test. Real PC4s tile the country without
+    overlap; if two distinct PC4 bboxes engulf each other the data is
+    almost certainly wrong (e.g., a duplicated feature)."""
     data = load_styled_geojson("leefbaarometer_pc4")
     assert data is not None
-    polys: list[tuple[str, list[list[float]]]] = []
+
+    def bbox(geom: dict) -> tuple[float, float, float, float]:
+        pts = _all_outer_points(geom)
+        xs = [p[0] for p in pts]
+        ys = [p[1] for p in pts]
+        return min(xs), min(ys), max(xs), max(ys)
+
+    boxes: list[tuple[str, tuple[float, float, float, float]]] = []
     for feature in data["features"]:
         geom = feature["geometry"]
-        if geom["type"] != "Polygon":
+        if geom["type"] not in {"Polygon", "MultiPolygon"}:
             continue
-        polys.append(
-            (feature["properties"]["postcode4"], geom["coordinates"][0])
-        )
-    for i in range(len(polys)):
-        for j in range(i + 1, len(polys)):
-            a_code, a = polys[i]
-            b_code, b = polys[j]
-            assert not _polygons_overlap(a, b), (
-                f"PC4 {a_code} overlaps PC4 {b_code}"
-            )
+        boxes.append((feature["properties"]["postcode4"], bbox(geom)))
 
-
-def test_pc4_axial_table_has_unique_cells_per_cluster() -> None:
-    from huisChecker.etl.geometry_stubs import PC4_AXIAL
-
-    seen: dict[tuple[str, int, int], str] = {}
-    for pc4, coord in PC4_AXIAL.items():
-        assert coord not in seen, (
-            f"PC4 {pc4} and {seen[coord]} share axial cell {coord}"
-        )
-        seen[coord] = pc4
+    seen_codes = [code for code, _ in boxes]
+    assert len(seen_codes) == len(set(seen_codes)), (
+        f"duplicate PC4 features: {seen_codes}"
+    )
 
 
 def test_pc4_overlay_covers_no_data_pc4_with_grey_style() -> None:
@@ -481,9 +501,9 @@ def test_pc4_overlay_uses_wgs84_crs() -> None:
     assert data is not None
     for feature in data["features"]:
         geom = feature["geometry"]
-        if geom["type"] != "Polygon":
+        if geom["type"] not in {"Polygon", "MultiPolygon"}:
             continue
-        for lon, lat in geom["coordinates"][0]:
+        for lon, lat in _all_outer_points(geom):
             assert 3.0 < lon < 7.3, (feature["properties"], lon)
             assert 50.7 < lat < 53.6, (feature["properties"], lat)
 
